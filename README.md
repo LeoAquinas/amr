@@ -12,7 +12,7 @@ This is a repository for a final year project pertaining to the HRI system of an
 |`rtab-map`|Robot Mapping|
 |`ORBSLAM3`|To Provide Visual Odometry|
 |`sllidar`|Package for LiDAR Functionality|
-|``|Package for IntelRealsense Camera|
+|`realsense-ros`|Package for IntelRealsense Camera|
 |`robot_localization`|Package for Unscented Kalman Filter|
 
 
@@ -24,6 +24,9 @@ git clone https://github.com/LeoAquinas/amr.git
 Setup Dependencies
 ### RTAB-Map
 Clone from [source](https://github.com/introlab/rtabmap_ros/tree/ros2)
+Install extra dependency:
+```
+sudo apt install ros-${ROS_DISTRO}-image-transport-plugins
 
 
 
@@ -71,6 +74,15 @@ Install ORBSLAM3 dependencies
   ```
   ##### Install ORBSLAM3 ROS2 Publisher
   Follow [this](https://github.com/zang09/ORB_SLAM3_ROS2)
+  ##### Replace src files
+  Replace mono and stereo folder in src folder in zang09/ORB_SLAM3_ROS2 with folders found [here](https://github.com/LimJingXiang1226/ELA2.0_NAV/tree/main) in others
+  ##### Update subscribed topics
+  In [this](https://github.com/LimJingXiang1226/ELA2.0_NAV/blob/main/other/stereo/stereo-slam-node.cpp) file **(example used for stereo, if using other node, equivalent topics should be updated)**
+      Update subscribed topics from camera
+      ```
+      left_sub = std::make_shared<message_filters::Subscriber<ImageMsg>>(this, "camera/camera/infra1/image_rect_raw");
+      right_sub = std::make_shared<message_filters::Subscriber<ImageMsg>>(this, "camera/camera/infra2/image_rect_raw");
+      ```
 
 
 **Troubleshooting**
@@ -85,7 +97,33 @@ Install ORBSLAM3 dependencies
   ```
 **2. ORBSLAM3 black screen**\
   Try to move camera around and wait, sometimes the algorithm takes a while to initialize
+**3. [Compilation Error](https://github.com/alsora/ros2-ORB_SLAM2/issues/8)**
+  ```
+  --- stderr: ros2_orbslam
+  /usr/bin/ld: CMakeFiles/stereo.dir/src/stereo/stereo-slam-node.cpp.o: undefined reference to symbol '_ZN2cv23initUndistortRectifyMapERKNS_11_InputArrayES2_S2_S2_NS_5Size_IiEEiRKNS_12_OutputArrayES7_'
+  /usr/bin/ld: /usr/local/lib/libopencv_calib3d.so.405: error adding symbols: DSO missing from command line
+  collect2: error: ld returned 1 exit status
+  make[2]: *** [CMakeFiles/stereo.dir/build.make:217: stereo] Error 1
+  make[1]: *** [CMakeFiles/Makefile2:101: CMakeFiles/stereo.dir/all] Error 2
+  make: *** [Makefile:160: all] Error 2
+  ---
+  Failed   <<< ros2_orbslam [2.13s, exited with code 2]
+  Aborted  <<< opencv_tests [2.74s]
+  ```
+  If seen above error, it is due to [opencv error](https://github.com/alsora/ros2-ORB_SLAM2/issues/8#issuecomment-1461570970). 
+  Add the opencv lib in the CMakeLists.txt
 
+  ```
+  find_package(OpenCV 4.0 QUIET)
+  ... 
+  ament_target_dependencies(stereo rclcpp sensor_msgs cv_bridge message_filters ORB_SLAM2 Pangolin OpenCV)
+  ```
+
+### rf2o
+Clone package:
+```
+git clone git@github.com:Adlink-ROS/rf2o_laser_odometry.git
+```
 
 ### robot_localization
 Clone package:
@@ -99,7 +137,40 @@ git clone https://github.com/cra-ros-pkg/robot_localization
 git clone https://github.com/Slamtec/sllidar_ros2.git
 ```
 
+  **Troubleshooting**
+  
+  **1. [No LiDAR data published](https://github.com/Slamtec/sllidar_ros2/issues/46)
+    ```
+    I encountered the exact same error as you, but mine is with the A1M8 model. I changed scan_mode = LaunchConfiguration('scan_mode', default='Sensitivity') to scan_mode = LaunchConfiguration('scan_mode', default='Standard'). After 
+    that, it launched successfully!!
+    ```
+
+### laser_filters
+[Package](https://github.com/ros-perception/laser_filters) for filtering laser scans
+Clone package:
+```
+git clone git@github.com:ros-perception/laser_filters.git
+```
+LiDAR used for AMR was a 360 deg RPLiDAR A1. The placement of the LiDAR had its side covered by the robot body. As such, package was used to disclude unwanted laser scans.
+
+The [angular filter](https://github.com/ros-perception/laser_filters/blob/ros2/examples/angular_filter_example.launch.py) was used.
+To control the angles, the [config file](https://github.com/ros-perception/laser_filters/blob/ros2/examples/angular_filter_example.yaml) was modified to the desired angles.
+
+**Once used, scan topic would be ```/scan_filtered```
+
+
 ### IntelRealSense
+To use the IntelRealSense camera in ROS2, 2 steps are required.
+  #### 1. Setup librealsense on Jetson Orin Nano
+  Follow [this](https://github.com/jetsonhacks/jetson-orin-librealsense) setup.
+    -- Can just run given commands in terminal. After the setup, user should be able to connect and see through camera.
+
+  ### 2. Install ROS2 Wrapper for IntelRealsense
+  Follow [this](https://github.com/jetsonhacks/jetson-orin-librealsense)
+    --- Start directly from step 3. Once done, should be able to publish topics to ROS2
+
+  **Troubleshooting**
+  
 
 ### Arduino
 Install Arduino IDE
@@ -132,23 +203,31 @@ export MAKEFLAGS="-j1"
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --executor sequential
 ```
 
-## Testing connection of FS-i6X controller
-Receiver connected to UART pins on Jetson. To test if ports are available, run:
-```
-ls /dev/ttyTHS*
-```
-User should see something like this:
-```
-/dev/ttyTHS1 /dev/ttyTHS2
-```
-Once the receiver has been connected to the Jetson, the IBUS data stream can be checked with the screen package.
-```
-sudo apt install screen
-screen /dev/ttyTHS1 115200  # Exit with Ctrl+A → K
-```
 
 
 ## Commands
+Start LiDAR
+```
+ros2 launch sllidar_ros2 view_sllidar_a1_launch.py
+```
+
+Start Camera
+```
+ros2 run realsense2_camera realsense2_camera_node --ros-args -p pointcloud.enable:=true -p enable_color:=true -p enable_depth:=true 
+```
+
+Start rf2o
+```
+ros2 launch rf2o_laser_odometry rf2o_laser_odometry.launch.py 
+```
+
+Start ORBSLAM3
+```
+ros2 run orbslam3 stereo /home/jetson/agv/src/vslam/orbslam3_ros2/vocabulary/ORBvoc.txt /home/jetson/agv/src/vslam/orbslam3_ros2/config/stereo/RealSense_D435i.yaml false
+```
+
+
+
 Launch robot bringup to start robot
 ```
 ros2 launch
@@ -158,6 +237,7 @@ Launch voice control
 ```
 Launch RTAB-Map for mapping
 ```
+ros2 launch rtabmap_launch rtabmap.launch.py subscribe_rgbd:="true" rtabmap_args:="--delete_db_on_start" odom_topic:="/odom_rf2o"
 ```
 Launch Nav2
 ```
