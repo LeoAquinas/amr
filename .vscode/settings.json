@@ -1,0 +1,30 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/jetson/agv/build/rtabmap_python",
+        "/home/jetson/agv/install/rtabmap_python/lib/python3.10/site-packages",
+        "/home/jetson/agv/install/rtabmap_msgs/local/lib/python3.10/dist-packages",
+        "/home/jetson/agv/install/realsense2_camera_msgs/local/lib/python3.10/dist-packages",
+        "/home/jetson/agv/build/opencv_tests",
+        "/home/jetson/agv/install/opencv_tests/lib/python3.10/site-packages",
+        "/home/jetson/agv/install/image_geometry/local/lib/python3.10/dist-packages",
+        "/home/jetson/agv/install/cv_bridge/local/lib/python3.10/dist-packages",
+        "/home/jetson/agv/build/camera_info_manager_py",
+        "/home/jetson/agv/install/camera_info_manager_py/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/jetson/agv/build/rtabmap_python",
+        "/home/jetson/agv/install/rtabmap_python/lib/python3.10/site-packages",
+        "/home/jetson/agv/install/rtabmap_msgs/local/lib/python3.10/dist-packages",
+        "/home/jetson/agv/install/realsense2_camera_msgs/local/lib/python3.10/dist-packages",
+        "/home/jetson/agv/build/opencv_tests",
+        "/home/jetson/agv/install/opencv_tests/lib/python3.10/site-packages",
+        "/home/jetson/agv/install/image_geometry/local/lib/python3.10/dist-packages",
+        "/home/jetson/agv/install/cv_bridge/local/lib/python3.10/dist-packages",
+        "/home/jetson/agv/build/camera_info_manager_py",
+        "/home/jetson/agv/install/camera_info_manager_py/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

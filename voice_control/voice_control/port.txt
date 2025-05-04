@@ -1,0 +1,259 @@
+#!/usr/bin/env python3
+
+#Speech Libraries
+import speech_recognition as sr
+import pyttsx3
+import pyaudio
+
+#ROS Libraries
+import geometry_msgs
+import sys, threading, geometry_msgs.msg
+
+import rclpy
+from rclpy.node import Node
+
+if sys.platform == 'win32':
+	import msvcrt
+else:
+	import termios, tty
+	
+#Other Libraries
+import os
+
+
+
+msg = """
+Recognizing voice and publishing to Twist!
+---------------------------
+Moving around:
+   Move Forward: Forward
+   Move Backward: Reverse
+   Turn Left: Left
+   Turn Right: Right
+   Stop: Stop
+
+
+   Increase/decrease max speeds by 10%: Speed Up/Slow Down
+   Increase/decrease only linear speed by 10%: Move Faster/Slower
+   Increase/decrease only angular speed by 10%: Turn Faster/Slower
+   
+Say Ross + "Command"
+---------------------------
+
+CTRL-C to quit
+"""
+
+moveBindings = {
+		'forward':(1,0,0,0),
+		'left':(0,0,0,1),
+		'right':(0,0,0,-1),
+		'reverse':(-1,0,0,0),
+		'stop':(0,0,0,0),
+	       }
+
+speedBindings={
+		'speed up':(1.1,1.1),
+		'slow down':(.9,.9),
+		'move faster':(1.1,1),
+		'move slower':(.9,1),
+		'turn faster':(1,1.1),
+		'turn slower':(1,.9),
+	      }
+
+
+
+class voiceNode(Node):
+    settings = None
+
+    #Main Operating Function
+    #This is the parent function which nests the process function listen()
+    def __init__(self):
+        self.settings = self.saveTerminalSettings()
+        super().__init__("voice_control")
+
+        #Set initial parameters
+        self.speed = 0.5
+        self.turn = 1.0
+        self.x = 0.0
+        self.y = 0.0
+        self.z = 0.0
+        self.th = 0.0
+        self.status = 0.0
+
+        self.params()
+
+    #Startup Processes
+    #This is a function that runs startup processes for voice commands
+    def startup(self):
+         print("Initiated")
+         self.listener = sr.Recognizer() #Start sr module
+         self.engine = pyttsx3.init()    #Start tts engine
+
+         #Set Voice Type
+         voices = self.engine.getProperty('voices')
+         self.engine.setProperty('voice', voices[0].id)
+
+         #Set Voice Rate
+         rate = self.engine.getProperty('rate')     # getting details of current speaking rate
+         print (rate)                               # printing current voice rate
+         self.engine.setProperty('rate', 150)       # setting up new voice rate
+
+         #Greeting
+         self.input_to_speech("Good day, how may I help you today?")
+
+    #Speech Function
+    #This is a function that converts input into speech
+    def input_to_speech(self, input):
+         self.engine.say(input)
+         self.engine.runAndWait()
+         print(input)
+
+    #Vel Function
+    #Just a function to print speed and turn
+    def vels(self, speed, turn):
+         return 'currently:\tspeed %s\tturn %s ' % (speed, turn)
+        
+    #Nested Operating Function
+    #This is the second layer function which would call all the function processes of the class
+    def listen(self):
+         self.startup()
+         try:
+              with sr.Microphone() as source:
+                   os.system('clear')
+                   print(msg)
+                   print(self.vels(self.speed, self.turn))
+                   print("\nListening")
+                   audio = self.listener.listen(source)
+                   command = self.listener.recognize_google(audio)
+                   print("Listened")
+                   command = command.lower()
+                   if 'alexa' in command:#change back to ross
+                        print("Entered")
+                        self.input_to_speech(command)
+                        self.movement(command)
+                   else:
+                        print(command)#
+                   print("Executed")
+         except Exception as e:
+              print(e)
+
+    #Params Function
+    def params(self):
+         # parameters
+        self.stamped = self.declare_parameter('stamped', False).value
+        self.frame_id = self.declare_parameter('frame_id', '').value
+        if not self.stamped and self.frame_id:
+            raise Exception("'frame_id' can only be set when 'stamped' is True")
+        
+        if self.stamped:
+            TwistMsg = geometry_msgs.msg.TwistStamped
+        else:
+            TwistMsg = geometry_msgs.msg.Twist
+            
+        self.pub = self.create_publisher(TwistMsg, 'cmd_vel', 10)
+
+        self.spinner = threading.Thread(target=rclpy.spin, args=(self,))
+        self.spinner.start()
+
+        self.twist_msg = TwistMsg()
+
+        if self.stamped:
+            self.twist = self.twist_msg.twist
+            self.twist_msg.header.stamp = self.get_clock().now().to_msg()
+            self.twist_msg.header.frame_id = self.frame_id
+        else:
+            twist = self.twist_msg
+
+
+
+
+        self.listen()
+
+    #Movement Function
+    #This is the function that contains movement of robot
+    #It would take the voice command as input and match to available commands to execute
+    def movement(self, command):
+        
+        #Need to set initial speed
+
+         print("This is movement function")##
+         command = command.split()      #Split speech into list of words
+         for item in command:           #Check each item in list for keyword
+              print(item)##
+              #Get movement magnitudes
+              if item in moveBindings:
+                self.x = moveBindings[item][0]
+                self.y = moveBindings[item][1]
+                self.z = moveBindings[item][2]
+                self.th = moveBindings[item][3]
+                print(f'{item}, ({self.x, self.y, self.z, self.th})')
+              #Get speed magnitudes
+              elif item in speedBindings:
+                self.speed = self.speed * speedBindings[item][0]
+                self.turn = self.turn * speedBindings[item][1]
+
+                print(self.vels(self.speed,self.turn))
+                if (status == 14):
+                    print(msg)
+                status = (status + 1) % 15
+              else:
+                self.x = 0.0
+                self.y = 0.0
+                self.z = 0.0
+                self.th = 0.0
+                print("Invalid Command")#
+                # if (command == 'exit') or (command == 'quit'):
+                #     break
+              if self.stamped:
+                self.twist_msg.header.stamp = self.get_clock().now().to_msg()
+
+              self.twist.linear.x = self.x * self.speed
+              self.twist.linear.y = self.y * self.speed
+              self.twist.linear.z = self.z * self.speed
+              self.twist.angular.x = 0.0
+              self.twist.angular.y = 0.0
+              self.twist.angular.z = self.th * self.turn
+              self.pub.publish(self.twist_msg)
+                
+    def saveTerminalSettings(self):
+        if sys.platform == 'win32':
+            return None
+        return termios.tcgetattr(sys.stdin)
+
+    def restoreTerminalSettings(self,old_settings):
+        if sys.platform == 'win32':
+            return
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+
+    
+        
+    
+#Main Function
+#This is the main function of the program
+#It is also the function that initiates ROS2 node operations through rclpy
+def main(args=None):
+    rclpy.init(args=args)
+    node = voiceNode()
+
+
+
+    # if node.stamped:
+    #     node.twist_msg.header.stamp = node.get_clock().now().to_msg()
+
+    # node.twist.linear.x = 0.0
+    # node.twist.linear.y = 0.0
+    # node.twist.linear.z = 0.0
+    # node.twist.angular.x = 0.0
+    # node.twist.angular.y = 0.0
+    # node.twist.angular.z = 0.0
+    # node.pub.publish(node.twist_msg)
+    rclpy.shutdown()
+    node.spinner.join()
+
+    node.restoreTerminalSettings(node.settings)
+	
+			
+
+if __name__ == '__main__':
+	main()
+

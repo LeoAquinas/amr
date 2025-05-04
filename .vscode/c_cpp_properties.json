@@ -1,0 +1,37 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/jetson/agv/install/rtabmap_slam/include/**",
+        "/home/jetson/agv/install/rtabmap_odom/include/**",
+        "/home/jetson/agv/install/rtabmap_util/include/**",
+        "/home/jetson/agv/install/rtabmap_sync/include/**",
+        "/home/jetson/agv/install/rtabmap_rviz_plugins/include/**",
+        "/home/jetson/agv/install/rtabmap_conversions/include/**",
+        "/home/jetson/agv/install/rtabmap_msgs/include/**",
+        "/home/jetson/agv/install/realsense2_camera/include/**",
+        "/home/jetson/agv/install/realsense2_camera_msgs/include/**",
+        "/home/jetson/agv/install/laser_filters/include/**",
+        "/home/jetson/agv/install/image_geometry/include/**",
+        "/home/jetson/agv/install/cv_bridge/include/**",
+        "/home/jetson/agv/install/camera_info_manager/include/**",
+        "/home/jetson/agv/install/camera_calibration_parsers/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/jetson/agv/src/camera/realsense-ros/realsense2_camera/include/**",
+        "/home/jetson/agv/src/rtabmap_ros/rtabmap_conversions/include/**",
+        "/home/jetson/agv/src/vslam/orbslam3_ros2/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-arm64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
