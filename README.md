@@ -132,6 +132,21 @@ export MAKEFLAGS="-j1"
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --executor sequential
 ```
 
+## Testing connection of FS-i6X controller
+Receiver connected to UART pins on Jetson. To test if ports are available, run:
+```
+ls /dev/ttyTHS*
+```
+User should see something like this:
+```
+/dev/ttyTHS1 /dev/ttyTHS2
+```
+Once the receiver has been connected to the Jetson, the IBUS data stream can be checked with the screen package.
+```
+sudo apt install screen
+screen /dev/ttyTHS1 115200  # Exit with Ctrl+A → K
+```
+
 
 ## Commands
 Launch robot bringup to start robot
