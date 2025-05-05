@@ -27,7 +27,7 @@ Clone from [source](https://github.com/introlab/rtabmap_ros/tree/ros2)
 Install extra dependency:
 ```
 sudo apt install ros-${ROS_DISTRO}-image-transport-plugins
-
+```
 
 
 ### ORBSLAM3
