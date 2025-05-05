@@ -5,11 +5,11 @@
 
     <joint name="lidar_joint" type="fixed">
         <parent link="base_link"/>
-        <child link="laser_link"/>
+        <child link="laser"/>
         <origin xyz="0.2975 -0.012 0.11225" rpy="0 0 0"/>
     </joint>
 
-    <link name="laser_link">
+    <link name="laser">
         <visual>
             <geometry>
                 <cylinder radius="0.035" length="0.0195"/>
@@ -25,41 +25,5 @@
             <origin xyz="0 0 0" rpy="0 0 0"/>
         </xacro:inertial_cylinder>
     </link>
-
-    <!-- LiDAR Gazebo Simulation Information -->
-
-    <gazebo reference="laser_link">
-        <material>Gazebo/Red</material>
-
-        <sensor name="lidar" type="ray"> <!-- Ray Sensor -->
-            <pose>0 0 0 0 0 0</pose> <!-- Origin of Virtual Sensor is Origin of Link -->
-            <visualize>true</visualize> 
-            <update_rate>5</update_rate> <!-- 10 Times / Sec -->
-            <ray>
-                <scan>
-                    <horizontal>
-                        <samples>300</samples>
-                        <!-- <resolution>1</resolution> -->
-                        <min_angle>-3.14</min_angle> <!-- In Rads -->
-                        <max_angle>3.14</max_angle>
-                    </horizontal>
-                </scan>
-                <range>
-                    <min>0.1</min> <!-- Min 300 mm-->
-                    <max>12</max> <!-- Max 12 m -->
-                    <!-- <resolution>0.01</resolution> -->
-                </range>
-            </ray>
-            <plugin name="lidar_sensor" filename="libgazebo_ros_ray_sensor.so"> <!-- Plugin That Takes Ray Sensor And Let It Talk To Ros -->
-                    <useSimTime>true</useSimTime>
-                    <ros>
-                        <argument>~/out:=scan</argument> <!-- Publish To This Topic -->
-                    </ros>
-                <frame_name>laser_link</frame_name> <!-- Output Type to Publish -->
-                <output_type>sensor_msgs/LaserScan</output_type> <!-- Frame ID for Scan Msg -->
-            </plugin>
-        </sensor>
-    </gazebo>
-
 
 </robot>

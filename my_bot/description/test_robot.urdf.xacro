@@ -5,7 +5,6 @@
     <xacro:include filename="test_lidar.xacro"/>
     <xacro:include filename="wheels.xacro"/>
 
-
     <!-- MATERIALS -->
     
     <material name="white">
