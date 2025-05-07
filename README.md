@@ -170,7 +170,48 @@ To use the IntelRealSense camera in ROS2, 2 steps are required.
     --- Start directly from step 3. Once done, should be able to publish topics to ROS2
 
   **Troubleshooting**
-  
+
+### Voice Control
+Dependencies:
+```
+pip install -U kokoro-onnx
+pip install soundfile
+pip install faster-whisper
+pip install SpeechRecognition
+pip install sounddevice
+pip install ollama
+```
+  References:
+  [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+  [ollama](https://github.com/ollama/ollama-python)
+  [ollama models](https://ollama.com/library)
+  [kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx)
+
+
+
+### YOLO
+Dependencies:
+**Numpy Error**
+**kokoro-onnx requires numpy version == 2.0.2**
+**yolo requires numpy version < 2 (Using 1.24.1)**
+**Would have conflicts in packages.**
+
+To resolve: 
+Dependencies are installed in a virtual environment and the yolo node is launched using a launch file.
+```
+python3 -m venv ~/venvs/numpy1241
+source ~/venvs/numpy1241/bin/activate
+pip install ultralytics
+pip install numpy==1.24.1
+
+deactivate
+```
+**Edit yolo_launcher launch file path to suit Device**
+
+
+
+
+
 
 ### Arduino
 Install Arduino IDE
