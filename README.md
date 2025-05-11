@@ -170,6 +170,19 @@ To use the IntelRealSense camera in ROS2, 2 steps are required.
     --- Start directly from step 3. Once done, should be able to publish topics to ROS2
 
   **Troubleshooting**
+  1. RGB image topic fails to publish
+       Might be due to resolution. change resolution to
+       ```
+       # param_name : 'width, height, frame-rate'
+       'rgb_camera.color_profile' : '424, 240, 15',
+       'depth_module.depth_profile' : '424, 240, 15,
+       ```
+  2. power_line_frequency warning
+       Due to default issue with ROS wrapper not able to detect RGB frequency
+       ```
+       # Manually set parameter in launch file
+       'rgb_camera.power_line_frequency' : 1
+       ```
 
 ### Voice Control
 Dependencies:
