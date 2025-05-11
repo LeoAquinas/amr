@@ -256,6 +256,11 @@ Start Camera
 ```
 ros2 run realsense2_camera realsense2_camera_node --ros-args -p pointcloud.enable:=true -p enable_color:=true -p enable_depth:=true 
 ```
+**Above cmd might have issues publishing rgb image, can use this instead:**
+```
+ros2 launch realsense2_camera camera_launch.launch.py 
+```
+
 
 Start rf2o
 ```
