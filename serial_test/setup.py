@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'voice_control'
+package_name = 'serial_test'
 
 setup(
     name=package_name,
@@ -20,9 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'voice_control = voice_control.voice_control:main',
-            'whisper_voice_control = voice_control.whisper_voice_control:main',
-            'gpt_voice_control = voice_control.gpt_voice_control:main',
+            'serial_test = serial_test.serial_test:main'
         ],
     },
 )
