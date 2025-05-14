@@ -193,6 +193,7 @@ To use the IntelRealSense camera in ROS2, 2 steps are required.
   If local costmap does not show during nav, change param file:
     1. local costmap global frame -> map
     2. ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True  # Or false depending on situation
+    3. Param file should be the one within the humble directory within tuetlebot3_navigation launch
 
 ### Yolo
 **1. Pointcloud Filtering**
