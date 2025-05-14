@@ -169,6 +169,10 @@ To use the IntelRealSense camera in ROS2, 2 steps are required.
   Follow [this](https://github.com/jetsonhacks/jetson-orin-librealsense)
     --- Start directly from step 3. Once done, should be able to publish topics to ROS2
 
+  ### Making use in URDF
+  To make use of camera data, the camera frames need to be linked to base_link
+  
+
   **Troubleshooting**
   1. RGB image topic fails to publish
        Might be due to resolution. change resolution to
@@ -183,6 +187,20 @@ To use the IntelRealSense camera in ROS2, 2 steps are required.
        # Manually set parameter in launch file
        'rgb_camera.power_line_frequency' : 1
        ```
+
+### Nav2
+**Make use of turtlebot emanual navigation package due to configurable param file**
+  If local costmap does not show during nav, change param file:
+    1. local costmap global frame -> map
+    2. ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True  # Or false depending on situation
+
+### Yolo
+**1. Pointcloud Filtering**
+  Makes use of [cropbox filter]([https://github.com/PointCloudLibrary/pcl/blob/master/filters/src/crop_box.cpp](https://github.com/ros-perception/perception_pcl/blob/ros2/pcl_ros/src/pcl_ros/filters/crop_box.cpp))
+  **Filter come from perception_pcl library but can use as is as it comes with ROS2**
+  **Used as a called method in pointcloud filter implementation file**
+
+
 
 ### Voice Control
 Dependencies:
@@ -301,6 +319,7 @@ ros2 launch rtabmap_launch rtabmap.launch.py subscribe_rgbd:="true" rtabmap_args
 Launch Nav2
 ```
 ```
+
 
 
 
