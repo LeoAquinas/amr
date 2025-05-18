@@ -1,0 +1,5 @@
+<library path="yolo_costmap_package_core">
+  <class type="yolo_costmap_package::YoloLayer" base_class_type="nav2_costmap_2d::Layer">
+    <description>This is an example plugin which puts yolo detections to costmap</description>
+  </class>
+</library>
