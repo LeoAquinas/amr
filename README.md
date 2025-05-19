@@ -220,8 +220,8 @@ To use the IntelRealSense camera in ROS2, 2 steps are required.
        Might be due to resolution. change resolution to
        ```
        # param_name : 'width, height, frame-rate'
-       'rgb_camera.color_profile' : '424, 240, 15',
-       'depth_module.depth_profile' : '424, 240, 15,
+       'rgb_camera.color_profile' : '480, 240, 15',
+       'depth_module.depth_profile' : '480, 240, 15,
        ```
   2. power_line_frequency warning
        Due to default issue with ROS wrapper not able to detect RGB frequency
