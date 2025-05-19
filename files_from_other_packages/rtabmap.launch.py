@@ -452,16 +452,16 @@ def generate_launch_description():
         DeclareLaunchArgument('approx_sync_max_interval',  default_value='0.1', description='(sec) 0 means infinite interval duration (used with approx_sync=true)'),
 
         # RGB-D related topics
-        DeclareLaunchArgument('rgb_topic',           default_value='/camera/camera/color/image_raw',       description=''),
-        DeclareLaunchArgument('depth_topic',         default_value='/camera/camera/depth/image_rect_raw', description=''),
-        DeclareLaunchArgument('camera_info_topic',   default_value='/camera/camera/color/camera_info',            description=''),
+        DeclareLaunchArgument('rgb_topic',           default_value='/camera/realsense2_camera/color/image_raw',       description=''),
+        DeclareLaunchArgument('depth_topic',         default_value='/camera/realsense2_camera/depth/image_rect_raw', description=''),
+        DeclareLaunchArgument('camera_info_topic',   default_value='/camera/realsense2_camera/color/camera_info',            description=''),
         
         # Stereo related topics
         DeclareLaunchArgument('stereo_namespace',        default_value='/stereo_camera', description=''),
-        DeclareLaunchArgument('left_image_topic',        default_value=[LaunchConfiguration('stereo_namespace'), '/left/image_rect_color'], description=''),
-        DeclareLaunchArgument('right_image_topic',       default_value=[LaunchConfiguration('stereo_namespace'), '/right/image_rect'], description='Use grayscale image for efficiency'),
-        DeclareLaunchArgument('left_camera_info_topic',  default_value=[LaunchConfiguration('stereo_namespace'), '/left/camera_info'], description=''),
-        DeclareLaunchArgument('right_camera_info_topic', default_value=[LaunchConfiguration('stereo_namespace'), '/right/camera_info'], description=''),
+        DeclareLaunchArgument('left_image_topic',        default_value=[LaunchConfiguration('stereo_namespace'), '/camera/realsense2_camera/infra1/image_rect_raw'], description=''),
+        DeclareLaunchArgument('right_image_topic',       default_value=[LaunchConfiguration('stereo_namespace'), '/camera/realsense2_camera/infra2/image_rect_raw'], description='Use grayscale image for efficiency'),
+        DeclareLaunchArgument('left_camera_info_topic',  default_value=[LaunchConfiguration('stereo_namespace'), '/camera/realsense2_camera/infra1/camera_info'], description=''),
+        DeclareLaunchArgument('right_camera_info_topic', default_value=[LaunchConfiguration('stereo_namespace'), '/camera/realsense2_camera/infra2/camera_info'], description=''),
         
         # Use Pre-sync RGBDImage format
         DeclareLaunchArgument('rgbd_sync',        default_value='true',      description='Pre-sync rgb_topic, depth_topic, camera_info_topic.'),
@@ -477,7 +477,7 @@ def generate_launch_description():
        
         # LiDAR
         DeclareLaunchArgument('subscribe_scan',       default_value='true',       description=''),
-        DeclareLaunchArgument('scan_topic',           default_value='/scan',       description=''),
+        DeclareLaunchArgument('scan_topic',           default_value='/scan_filtered',       description=''),
         DeclareLaunchArgument('subscribe_scan_cloud', default_value='false',       description=''),
         DeclareLaunchArgument('scan_cloud_topic',     default_value='/scan_cloud', description=''),
         DeclareLaunchArgument('scan_normal_k',        default_value='0',           description=''),
