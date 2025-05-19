@@ -173,10 +173,16 @@ To use the IntelRealSense camera in ROS2, 2 steps are required.
 
   ### Making use in URDF
   To make use of camera data, the camera frames need to be linked to base_link
+    -- Put [this](https://github.com/IntelRealSense/realsense-ros/blob/ros1-legacy/realsense2_description/urdf/test_d435_camera.urdf.xacro) in the urdf file of your robot
+      ->Obtained from [this](https://github.com/IntelRealSense/realsense-ros) package
+
+  ### Run
+  Can make use of launch file
+    ->Alternatively, can make use of ros2 run cmd like [here](https://github.com/IntelRealSense/realsense-ros/issues/2873)
   
 
   **Troubleshooting**
-  1. RGB image topic fails to publish
+  1. [RGB image topic fails to publish](https://github.com/IntelRealSense/realsense-ros/issues/1726)
        Might be due to resolution. change resolution to
        ```
        # param_name : 'width, height, frame-rate'
