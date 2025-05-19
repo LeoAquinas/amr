@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot" >
+
+    <xacro:include filename="inertial_macros.xacro"/>
+
+    <!-- TOP BODY LINK -->
+
+    <joint name="top_body_joint" type="fixed">
+        <parent link="chassis"/>
+        <child link="top_body_link"/>
+        <origin xyz="-0.015 0 0.7473"/>
+    </joint>
+
+    <link name="top_body_link">
+        <visual>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.373 0.380 0.890"/>
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.373 0.380 0.890"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_box mass="0.5" x="0.373" y="0.380" z="0.890">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+
+    <gazebo reference="top_body_link">
+        <material>Gazebo/Red</material>
+    </gazebo>
+
+</robot>

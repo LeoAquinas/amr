@@ -4,6 +4,9 @@
     <xacro:include filename="inertial_macros.xacro"/>
     <xacro:include filename="test_lidar.xacro"/>
     <xacro:include filename="wheels.xacro"/>
+    <xacro:include filename="top.xacro"/>
+    <xacro:include filename="realsense_camera.xacro"/>
+
 
     <!-- MATERIALS -->
     
@@ -42,6 +45,15 @@
 
     <link name="base_footprint">
     
+    </link>
+
+    <joint name="odom" type="fixed">
+        <parent link="base_link"/>
+        <child link="odom_frame"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <link name="odom_frame">
     </link>
 
     <!-- CHASSIS LINK -->
