@@ -129,6 +129,8 @@ git clone git@github.com:Adlink-ROS/rf2o_laser_odometry.git
 Clone package:
 ```
 git clone https://github.com/cra-ros-pkg/robot_localization
+git clone git@github.com:ros-geographic-info/geographic_info.git
+apt-get install libgeographic-dev
 ```
 
 ### sllidar_ros2
