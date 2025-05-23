@@ -47,14 +47,14 @@
     
     </link>
 
-    <joint name="odom" type="fixed">
+    <!-- <joint name="odom" type="fixed">
         <parent link="base_link"/>
         <child link="odom_frame"/>
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
     <link name="odom_frame">
-    </link>
+    </link> -->
 
     <!-- CHASSIS LINK -->
 
