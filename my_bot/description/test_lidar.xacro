@@ -26,4 +26,14 @@
         </xacro:inertial_cylinder>
     </link>
 
+
+    <joint name="lidar_rotate_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_rotate_link"/>
+        <origin xyz="0.2975 -0.012 0.11225" rpy="0 0 0"/>
+    </joint>
+
+    <link name="lidar_rotate_link">
+    </link>
+
 </robot>
