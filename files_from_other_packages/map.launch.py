@@ -80,6 +80,7 @@ def generate_launch_description():
     # RTAB-Map startup
     rtab_package_name = 'rtabmap_launch'
     # odom_topic = "/odom_rf2o"
+    # odom_topic = "/rtabmap_odom"
     odom_topic = "/odometry/filtered"
 
     rtabmap = IncludeLaunchDescription(
@@ -95,7 +96,7 @@ def generate_launch_description():
                                        'compressed': 'false',
 
                                        'subscribe_odom_info': 'true',
-                                       'icp_odometry': 'false',
+                                       'icp_odometry': 'true',
                                        'vo_frame_id': 'odom',
                                        'odom_topic': odom_topic,
                                        'publish_tf_odom': 'true',
