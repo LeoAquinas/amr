@@ -6,7 +6,7 @@
     <joint name="lidar_joint" type="fixed">
         <parent link="base_link"/>
         <child link="laser"/>
-        <origin xyz="0.2975 -0.012 0.11225" rpy="0 0 1.5708"/>
+        <origin xyz="0.2975 -0.012 0.11225" rpy="0 0 0"/>
     </joint>
 
     <link name="laser">
@@ -27,13 +27,13 @@
     </link>
 
 
-    <joint name="lidar_rotate_joint" type="fixed">
+    <!-- <joint name="lidar_rotate_joint" type="fixed">
         <parent link="base_link"/>
         <child link="lidar_rotate_link"/>
         <origin xyz="0.2975 -0.012 0.11225" rpy="0 0 0"/>
     </joint>
 
     <link name="lidar_rotate_link">
-    </link>
+    </link> -->
 
 </robot>
