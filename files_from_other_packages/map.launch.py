@@ -7,7 +7,7 @@ from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, TimerAction, RegisterEventHandler, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, PathJoinSubstitution, FindExecutable
-from launch.event_handlers import OnProcessStart
+from launch.event_handlers import OnProcessStart, OnProcessExit
 from launch_ros.substitutions import FindPackageShare
 
 from launch_ros.actions import Node
@@ -85,20 +85,47 @@ def generate_launch_description():
     rtabmap = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
-                )]), launch_arguments={'subscribe_rgbd': 'true', 'rtabmap_args': '--delete_db_on_start', 'odom_topic': odom_topic}.items()
+                )]), launch_arguments={'use_sim_time': 'false',
+                                       'rtabmap_viz': 'false',
+                                       'localization': 'false',
+                                       'subscribe_rgbd': 'true',
+                                       'rtabmap_args': '--delete_db_on_start',
+                                       'rgbd_sync': 'true',
+                                       'approx_rgbd_sync': 'true',
+                                       'compressed': 'false',
+
+                                       'subscribe_odom_info': 'true',
+                                       'icp_odometry': 'false',
+                                       'vo_frame_id': 'odom',
+                                       'odom_topic': odom_topic,
+                                       'publish_tf_odom': 'true',
+
+                                       'scan_topic': '/scan_filtered',
+                                       'rgb_topic': '/camera/realsense2_camera/color/image_raw',
+                                       'depth_topic': '/camera/realsense2_camera/depth/image_rect_raw',
+                                       'camera_info_topic': '/camera/realsense2_camera/color/camera_info',
+                                       
+                                       'stereo': 'false',
+                                       'stereo_namespace': '',
+                                       'left_image_topic': '/camera/realsense2_camera/infra1/image_rect_raw',
+                                       'right_image_topic': '/camera/realsense2_camera/infra2/image_rect_raw',
+                                       'left_camera_info_topic': '/camera/realsense2_camera/infra1/camera_info',
+                                       'right_camera_info_topic': '/camera/realsense2_camera/infra2/camera_info',
+                                       }.items()
     )
 
-    # RTAB-Map startup
-    rtab_package_name = 'rtabmap_launch'
-    odom_topic = "/odom_rf2o"
-
-    rtabmap = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
-                )]), launch_arguments={'subscribe_rgbd': 'false', 'rtabmap_args': '--delete_db_on_start', 'odom_topic': odom_topic}.items()
-    )
-
-    # ORBSLAM3 startup
+    yaml_file_path = "/home/jetson/agv/src/others/robot_localization/params/ukf.yaml"
+    ukf = Node(
+            package='robot_localization',
+            executable='ukf_node',
+            name='ukf_filter_node',
+            output='screen',
+            parameters=[yaml_file_path, {'use_sim_time': False}],
+           )
+    
+    ''' TODO:
+        Technically not used so can remove
+    # ORBSLAM3 stereo startup
     vocabulary_file = '/home/jetson/agv/src/vslam/orbslam3_ros2/vocabulary/ORBvoc.txt'
     config_file = '/home/jetson/agv/src/vslam/orbslam3_ros2/config/stereo/RealSense_D435i.yaml'
     rectify = 'false'
@@ -112,24 +139,36 @@ def generate_launch_description():
             ],
             output='screen'
         )
-    
 
-    yaml_file_path = "/home/jetson/agv/src/others/robot_localization/params/ukf.yaml"
-    ukf = Node(
-            package='robot_localization',
-            executable='ukf_node',
-            name='ukf_filter_node',
-            output='screen',
-            parameters=[yaml_file_path, {'use_sim_time': False}],
-           )
+    #LiDAR rotator
+    lidar_rotator = Node(
+                    package="lidar_rotator",
+                    executable="lidar_rotator"
+                )
     
+    # Add delays for sequential execution
+    delayed_realsense = TimerAction(period=2.0, actions=[realsense])
+    delayed_orbslam3 = TimerAction(period=3.0, actions=[orbslam3])
+    delayed_ukf = TimerAction(period=13.0, actions=[ukf])
+    delayed_rtabmap = TimerAction(period=14.0, actions=[rtabmap])
+
+    '''
+    delayed_rtabmap = TimerAction(period=14.0, actions=[rtabmap])
+
     # Launch them all!
     return LaunchDescription([
         lidar,
         lidar_filter,
+        # lidar_rotator,
         rf2o,
         realsense,
-        orbslam3,
-        # ukf,
-        rtabmap
+        # orbslam3,
+        ukf,
+        rtabmap,
+
+
+        # delayed_realsense,
+        # delayed_orbslam3,
+        # delayed_ukf,
+        delayed_rtabmap
     ])

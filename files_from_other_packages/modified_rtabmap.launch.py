@@ -196,7 +196,8 @@ def launch_setup(context, *args, **kwargs):
                 ("depth/image", LaunchConfiguration('depth_topic_relay')),
                 ("rgb/camera_info", LaunchConfiguration('camera_info_topic')),
                 ("rgbd_image", LaunchConfiguration('rgbd_topic_relay')),
-                ("odom", LaunchConfiguration('odom_topic')),
+                # ("odom", LaunchConfiguration('odom_topic')),
+                ("odom", "/rtabmap_odom"),
                 ("imu", LaunchConfiguration('imu_topic'))],
             arguments=[LaunchConfiguration("args"), LaunchConfiguration("odom_args"), "--ros-args", "--log-level", [LaunchConfiguration('namespace'), '.rgbd_odometry:=', LaunchConfiguration('odom_log_level')], "--log-level", ['rgbd_odometry:=', LaunchConfiguration('odom_log_level')]],
             prefix=LaunchConfiguration('launch_prefix'),
@@ -234,7 +235,8 @@ def launch_setup(context, *args, **kwargs):
                 ("left/camera_info", LaunchConfiguration('left_camera_info_topic')),
                 ("right/camera_info", LaunchConfiguration('right_camera_info_topic')),
                 ("rgbd_image", LaunchConfiguration('rgbd_topic_relay')),
-                ("odom", LaunchConfiguration('odom_topic')),
+                # ("odom", LaunchConfiguration('odom_topic')),
+                ("odom", "/rtabmap_odom"),
                 ("imu", LaunchConfiguration('imu_topic'))],
             arguments=[LaunchConfiguration("args"), LaunchConfiguration("odom_args"), "--ros-args", "--log-level", [LaunchConfiguration('namespace'), '.stereo_odometry:=', LaunchConfiguration('odom_log_level')], "--log-level", ['stereo_odometry:=', LaunchConfiguration('odom_log_level')]],
             prefix=LaunchConfiguration('launch_prefix'),
@@ -422,7 +424,7 @@ def generate_launch_description():
         DeclareLaunchArgument('rtabmap_viz',  default_value='true',  description='Launch RTAB-Map UI (optional).'),
         DeclareLaunchArgument('rviz',         default_value='false', description='Launch RVIZ (optional).'),
 
-        DeclareLaunchArgument('use_sim_time', default_value='true', description='Use simulation (Gazebo) clock if true'),
+        DeclareLaunchArgument('use_sim_time', default_value='false', description='Use simulation (Gazebo) clock if true'),
 
         DeclareLaunchArgument('log_level',    default_value='info', description="ROS logging level (debug, info, warn, error). For RTAB-Map\'s logger level, use \"args\" argument."),
 
@@ -457,9 +459,9 @@ def generate_launch_description():
         DeclareLaunchArgument('approx_sync_max_interval',  default_value='0.02', description='(sec) 0 means infinite interval duration (used with approx_sync=true)'),
 
         # RGB-D related topics
-        DeclareLaunchArgument('rgb_topic',           default_value='/depth_camera/image_raw',       description=''),
-        DeclareLaunchArgument('depth_topic',         default_value='/depth_camera/depth/image_raw', description=''),
-        DeclareLaunchArgument('camera_info_topic',   default_value='/depth_camera/camera_info',            description=''),
+        DeclareLaunchArgument('rgb_topic',           default_value='/camera/realsense2_camera/color/image_raw',       description=''),
+        DeclareLaunchArgument('depth_topic',         default_value='/camera/realsense2_camera/depth/image_rect_raw', description=''),
+        DeclareLaunchArgument('camera_info_topic',   default_value='/camera/realsense2_camera/color/camera_info',            description=''),
         
         # Stereo related topics
         DeclareLaunchArgument('stereo_namespace',        default_value='/stereo_camera', description=''),
