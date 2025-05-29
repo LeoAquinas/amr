@@ -56,6 +56,10 @@ bool enableMotor = false;
 int motorSpeedLeft = 0;
 int motorSpeedRight = 0;
 
+unsigned long last_cmd_vel_time = 0;
+const unsigned long CMD_VEL_TIMEOUT = 500;  // ms
+
+
 void setup() {
   leftMotor.setSpeed(0);  
   rightMotor.setSpeed(0); 
@@ -238,8 +242,12 @@ void loop() {
     float left_speed = x - z;
     float right_speed = x + z;
 
+    Serial.println(left_speed);
+    Serial.println(right_speed);
     int left_pwm = (int)(constrain(left_speed / MAX_LINEAR_VEL, -1.0, 1.0) * 30);
     int right_pwm = (int)(constrain(right_speed / MAX_LINEAR_VEL, -1.0, 1.0) * 30);
+    Serial.println(left_pwm);
+    Serial.println(right_pwm);
 
     // Get sonar ping dist in cm
     // int distance1 = sonar1.ping_cm(); // Send ping, get distance in cm and print result (0 = outside set distance range)
@@ -306,10 +314,16 @@ void loop() {
 
     // clear buffers
     // Serial.flush();
+    // ✅ Update the last time we received a command
+    last_cmd_vel_time = millis();// ✅ Update the last time we received a command
+    last_cmd_vel_time = millis();
   }
 
   else {
-    motorRunStart();
+    // ✅ Check timeout
+    if (millis() - last_cmd_vel_time > CMD_VEL_TIMEOUT) {
+      motorRunStart();  // Fall back to RC only if no new cmd_vel for 200ms
+    }
   }
 
   delay(50);
