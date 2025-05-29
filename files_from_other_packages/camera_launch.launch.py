@@ -28,22 +28,25 @@ def generate_launch_description():
                     'enable_gyro' : True,
                     'enable_accel' : True, 
                     'enable_color' : True,
+                    'unite_imu_method': 2,
 
                     # 'enable_depth' : True,
                     # 'align_depth' : True,
-                    # 'enable_sync' : True,
+                    'enable_sync' : True,
 
                     'rgb_camera.power_line_frequency' : 1,
 
                     # Need to change frame-rate and res in order to not freeze up RGB publisher
-                    'rgb_camera.color_profile' : '480, 240, 15',
-                    'depth_module.depth_profile' : '480, 240, 15',
+                    'rgb_camera.color_profile' : '424, 240, 15',
+                    'depth_module.depth_profile' : '424, 240, 15',
                     # 'rgb_camera.color_profile' : '212, 120, 15',
                     # 'depth_module.depth_profile' : '212, 120, 15',
                     
                     'enable_infra' : True,
                     'enable_infra1' : True,
-                    'enable_infra2' : True
+                    'enable_infra2' : True,
+
+                    'depth_module.infra_profile' : '424, 240, 15'
                     }],
             ),
     ])

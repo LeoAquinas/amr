@@ -89,9 +89,8 @@ def generate_launch_description():
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
                 )]), launch_arguments={'use_sim_time': 'false',
                                        'rtabmap_viz': 'false',
-                                       'localization': 'false',
+                                       'localization': 'true',
                                        'subscribe_rgbd': 'true',
-                                       'rtabmap_args': '--delete_db_on_start',
                                        'rgbd_sync': 'true',
                                        'approx_rgbd_sync': 'true',
                                        'compressed': 'false',
@@ -137,7 +136,6 @@ def generate_launch_description():
                                         'Grid/Sensor':'2', # Use both laser scan and camera for obstacle detection in global map
                                         'Grid/MaxGroundHeight':'0.02', # All points above 5 cm are obstacles
                                         'Grid/MaxObstacleHeight':'1.0',  # All points over 1 meter are ignored
-
                                        }.items()
     )
 
@@ -162,29 +160,18 @@ def generate_launch_description():
             parameters=[yaml_file_path, {'use_sim_time': False}],
            )
     
-    ''' TODO:
-        Technically not used so can remove
-    # ORBSLAM3 stereo startup
-    vocabulary_file = '/home/jetson/agv/src/vslam/orbslam3_ros2/vocabulary/ORBvoc.txt'
-    config_file = '/home/jetson/agv/src/vslam/orbslam3_ros2/config/stereo/RealSense_D435i.yaml'
-    rectify = 'false'
-
-    orbslam3 = ExecuteProcess(
-            cmd=[
-                'ros2', 'run', 'orbslam3', 'stereo',
-                vocabulary_file,
-                config_file,
-                rectify
-            ],
-            output='screen'
-        )
-
-    #LiDAR rotator
-    lidar_rotator = Node(
-                    package="lidar_rotator",
-                    executable="lidar_rotator"
-                )
+    # Nav2
+    nav2_package_name = 'nav2_bringup'
+    nav2_params_file = '/home/jetson/agv/src/launch/config/nav2_params.yaml'
+    nav2 = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory(nav2_package_name),'launch','navigation_launch.py'
+                )]), launch_arguments={'use_sim_time': 'false',
+                                       'params_file': nav2_params_file,
+                                        }.items()
+    )
     
+    ''' TODO:
     # Add delays for sequential execution
     delayed_realsense = TimerAction(period=2.0, actions=[realsense])
     delayed_orbslam3 = TimerAction(period=3.0, actions=[orbslam3])
@@ -193,15 +180,14 @@ def generate_launch_description():
 
     '''
     delayed_rtabmap = TimerAction(period=7.0, actions=[rtabmap])
+    delayed_nav2 = TimerAction(period=10.0, actions=[nav2])
 
     # Launch them all!
     return LaunchDescription([
         lidar,
         lidar_filter,
-        # # lidar_rotator,
         rf2o,
         realsense,
-        # # orbslam3,
         ukf,
         quaternion,
         # rtabmap,
@@ -210,5 +196,6 @@ def generate_launch_description():
         # delayed_realsense,
         # delayed_orbslam3,
         # delayed_ukf,
-        delayed_rtabmap
+        delayed_rtabmap,
+        delayed_nav2
     ])

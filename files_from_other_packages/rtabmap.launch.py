@@ -3,6 +3,10 @@
 # "stdbuf -o L ros2 launch rtabmap_launch rtabmap.launch.py ..."
 #
 
+# Launch command
+# ros2 launch rtabmap_launch rtabmap.launch.py odom_topic:="/odometry/filtered" subscribe_rgbd:="true" rtabmap_args:="--delete_db_on_start" subscribe_odom_info:="true" publish_tf_odom:="true" vo_frame_id:='odom'
+
+
 import os
 
 from launch import LaunchDescription, Substitution, LaunchContext
@@ -192,7 +196,8 @@ def launch_setup(context, *args, **kwargs):
                 ("depth/image", LaunchConfiguration('depth_topic_relay')),
                 ("rgb/camera_info", LaunchConfiguration('camera_info_topic')),
                 ("rgbd_image", LaunchConfiguration('rgbd_topic_relay')),
-                ("odom", LaunchConfiguration('odom_topic')),
+                # ("odom", LaunchConfiguration('odom_topic')),
+                ("odom", "/rtabmap_odom"),
                 ("imu", LaunchConfiguration('imu_topic'))],
             arguments=[LaunchConfiguration("args"), LaunchConfiguration("odom_args"), "--ros-args", "--log-level", [LaunchConfiguration('namespace'), '.rgbd_odometry:=', LaunchConfiguration('odom_log_level')], "--log-level", ['rgbd_odometry:=', LaunchConfiguration('odom_log_level')]],
             prefix=LaunchConfiguration('launch_prefix'),
@@ -230,7 +235,8 @@ def launch_setup(context, *args, **kwargs):
                 ("left/camera_info", LaunchConfiguration('left_camera_info_topic')),
                 ("right/camera_info", LaunchConfiguration('right_camera_info_topic')),
                 ("rgbd_image", LaunchConfiguration('rgbd_topic_relay')),
-                ("odom", LaunchConfiguration('odom_topic')),
+                # ("odom", LaunchConfiguration('odom_topic')),
+                ("odom", "/rtabmap_odom"),
                 ("imu", LaunchConfiguration('imu_topic'))],
             arguments=[LaunchConfiguration("args"), LaunchConfiguration("odom_args"), "--ros-args", "--log-level", [LaunchConfiguration('namespace'), '.stereo_odometry:=', LaunchConfiguration('odom_log_level')], "--log-level", ['stereo_odometry:=', LaunchConfiguration('odom_log_level')]],
             prefix=LaunchConfiguration('launch_prefix'),
@@ -262,7 +268,8 @@ def launch_setup(context, *args, **kwargs):
             remappings=[
                 ("scan", LaunchConfiguration('scan_topic')),
                 ("scan_cloud", LaunchConfiguration('scan_cloud_topic')),
-                ("odom", LaunchConfiguration('odom_topic')),
+                # ("odom", LaunchConfiguration('odom_topic')),
+                ("odom", "/rtabmap_odom"),
                 ("imu", LaunchConfiguration('imu_topic'))],
             arguments=[LaunchConfiguration("args"), LaunchConfiguration("odom_args"), "--ros-args", "--log-level", [LaunchConfiguration('namespace'), '.icp_odometry:=', LaunchConfiguration('odom_log_level')], "--log-level", ['icp_odometry:=', LaunchConfiguration('odom_log_level')]],
             prefix=LaunchConfiguration('launch_prefix'),
@@ -308,7 +315,18 @@ def launch_setup(context, *args, **kwargs):
                 "landmark_linear_variance": LaunchConfiguration('tag_linear_variance'),
                 "landmark_angular_variance": LaunchConfiguration('tag_angular_variance'),
                 "Mem/IncrementalMemory": ConditionalText("true", "false", IfCondition(PythonExpression(["'", LaunchConfiguration('localization'), "' != 'true'"]))._predicate_func(context)).perform(context),
-                "Mem/InitWMWithAllNodes": ConditionalText("true", "false", IfCondition(PythonExpression(["'", LaunchConfiguration('localization'), "' == 'true'"]))._predicate_func(context)).perform(context)
+                "Mem/InitWMWithAllNodes": ConditionalText("true", "false", IfCondition(PythonExpression(["'", LaunchConfiguration('localization'), "' == 'true'"]))._predicate_func(context)).perform(context),
+
+                "Grid/RayTracing": LaunchConfiguration('grid_raytracing').perform(context),
+                "Grid/3D": LaunchConfiguration('grid_3d').perform(context),
+                'Grid/MinClusterSize': LaunchConfiguration('min_cluster_size').perform(context),
+
+                'Grid/RangeMax': LaunchConfiguration('range_max').perform(context),
+                'Grid/NormalsSegmentation': LaunchConfiguration('normals_segmentation').perform(context),
+                'Grid/Sensor': LaunchConfiguration('sensor').perform(context),
+                'Grid/MaxGroundHeight': LaunchConfiguration('max_ground_height').perform(context),
+                'Grid/MaxObstacleHeight': LaunchConfiguration('max_obstacle_height').perform(context),
+                
             }],
             remappings=[
                 ("map", LaunchConfiguration('map_topic')),
@@ -409,6 +427,18 @@ def generate_launch_description():
     )
     
     return LaunchDescription([
+
+        # Custom new arguments
+        DeclareLaunchArgument('grid_raytracing', default_value='false', description='Fill empty space.'),
+        DeclareLaunchArgument('grid_3d', default_value='false', description='Use 2D occupancy.'),
+        DeclareLaunchArgument('min_cluster_size', default_value='10', description='Minimum cluster size to project the points.",.'),
+
+        DeclareLaunchArgument('range_max', default_value='5.0', description=''),
+        DeclareLaunchArgument('normals_segmentation', default_value='true', description='Use passthrough filter to detect obstacles'),
+        DeclareLaunchArgument('sensor', default_value='1', description='Create occupancy grid from selected sensor: 0=laser scan, 1=depth image(s) or 2=both laser scan and depth image(s).'),
+        DeclareLaunchArgument('max_ground_height', default_value='0.0', description='"Maximum ground height (0=disabled).'),
+        DeclareLaunchArgument('max_obstacle_height', default_value='0.0', description='Maximum obstacles height (0=disabled).'),
+        
         
         # Arguments
         DeclareLaunchArgument('stereo', default_value='false', description='Use stereo input instead of RGB-D.'),
@@ -449,7 +479,7 @@ def generate_launch_description():
         DeclareLaunchArgument('ground_truth_base_frame_id', default_value='', description='e.g., "tracker", a fake frame matching the frame "frame_id" (but on different TF tree)'),
         
         DeclareLaunchArgument('approx_sync',  default_value='true',            description='If timestamps of the input topics should be synchronized using approximate or exact time policy.'),
-        DeclareLaunchArgument('approx_sync_max_interval',  default_value='0.1', description='(sec) 0 means infinite interval duration (used with approx_sync=true)'),
+        DeclareLaunchArgument('approx_sync_max_interval',  default_value='0.02', description='(sec) 0 means infinite interval duration (used with approx_sync=true)'),
 
         # RGB-D related topics
         DeclareLaunchArgument('rgb_topic',           default_value='/camera/realsense2_camera/color/image_raw',       description=''),
@@ -458,10 +488,10 @@ def generate_launch_description():
         
         # Stereo related topics
         DeclareLaunchArgument('stereo_namespace',        default_value='/stereo_camera', description=''),
-        DeclareLaunchArgument('left_image_topic',        default_value=[LaunchConfiguration('stereo_namespace'), '/camera/realsense2_camera/infra1/image_rect_raw'], description=''),
-        DeclareLaunchArgument('right_image_topic',       default_value=[LaunchConfiguration('stereo_namespace'), '/camera/realsense2_camera/infra2/image_rect_raw'], description='Use grayscale image for efficiency'),
-        DeclareLaunchArgument('left_camera_info_topic',  default_value=[LaunchConfiguration('stereo_namespace'), '/camera/realsense2_camera/infra1/camera_info'], description=''),
-        DeclareLaunchArgument('right_camera_info_topic', default_value=[LaunchConfiguration('stereo_namespace'), '/camera/realsense2_camera/infra2/camera_info'], description=''),
+        DeclareLaunchArgument('left_image_topic',        default_value=[LaunchConfiguration('stereo_namespace'), '/left/image_rect_color'], description=''),
+        DeclareLaunchArgument('right_image_topic',       default_value=[LaunchConfiguration('stereo_namespace'), '/right/image_rect'], description='Use grayscale image for efficiency'),
+        DeclareLaunchArgument('left_camera_info_topic',  default_value=[LaunchConfiguration('stereo_namespace'), '/left/camera_info'], description=''),
+        DeclareLaunchArgument('right_camera_info_topic', default_value=[LaunchConfiguration('stereo_namespace'), '/right/camera_info'], description=''),
         
         # Use Pre-sync RGBDImage format
         DeclareLaunchArgument('rgbd_sync',        default_value='true',      description='Pre-sync rgb_topic, depth_topic, camera_info_topic.'),
@@ -471,20 +501,20 @@ def generate_launch_description():
         DeclareLaunchArgument('depth_scale',      default_value='1.0',        description=''),
         
         # Image topic compression
-        DeclareLaunchArgument('compressed',            default_value='false', description='If you want to subscribe to compressed image topics'),
+        DeclareLaunchArgument('compressed',            default_value='true', description='If you want to subscribe to compressed image topics'),
         DeclareLaunchArgument('rgb_image_transport',   default_value='compressed', description='Common types: compressed, theora (see "rosrun image_transport list_transports")'),
         DeclareLaunchArgument('depth_image_transport', default_value='compressedDepth', description='Depth compatible types: compressedDepth (see "rosrun image_transport list_transports")'),
        
         # LiDAR
         DeclareLaunchArgument('subscribe_scan',       default_value='true',       description=''),
-        DeclareLaunchArgument('scan_topic',           default_value='/scan_filtered',       description=''),
+        DeclareLaunchArgument('scan_topic',           default_value='/scan',       description=''),
         DeclareLaunchArgument('subscribe_scan_cloud', default_value='false',       description=''),
         DeclareLaunchArgument('scan_cloud_topic',     default_value='/scan_cloud', description=''),
         DeclareLaunchArgument('scan_normal_k',        default_value='0',           description=''),
         
         # Odometry
         DeclareLaunchArgument('visual_odometry',            default_value='false',  description='Launch rtabmap visual odometry node.'),
-        DeclareLaunchArgument('icp_odometry',               default_value='false', description='Launch rtabmap icp odometry node.'),
+        DeclareLaunchArgument('icp_odometry',               default_value='true', description='Launch rtabmap icp odometry node.'),
         DeclareLaunchArgument('odom_topic',                 default_value='odom',  description='Odometry topic name.'),
         DeclareLaunchArgument('vo_frame_id',                default_value=LaunchConfiguration('odom_topic'), description='Visual/Icp odometry frame ID for TF.'),
         DeclareLaunchArgument('publish_tf_odom',            default_value='true',  description=''),
@@ -516,4 +546,3 @@ def generate_launch_description():
         DeclareLaunchArgument('fiducial_topic',       default_value='/fiducial_transforms', description='aruco_detect async subscription, use tag_linear_variance and tag_angular_variance to set covariance.'),
         OpaqueFunction(function=launch_setup)
     ])
-
