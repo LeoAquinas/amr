@@ -44,73 +44,87 @@ public:
   virtual bool isClearable() override {return true;}
 
 private:
+  struct CellData {
+    unsigned int x, y;
+    unsigned int src_x, src_y;
+    CellData(unsigned int x, unsigned int y, unsigned int src_x, unsigned int src_y)
+    : x(x), y(y), src_x(src_x), src_y(src_y) {}
+  };
+  std::vector<bool> seen_;
+  std::vector<std::vector<CellData>> inflation_cells_;
+  std::vector<std::vector<unsigned char>> cached_cost_matrix_;
+  double cached_cell_inflation_radius_;
+  int cell_inflation_radius_;
+  int cache_length_;
+  void computeCaches();
+  void enqueue(
+    int x, int y,
+    unsigned int src_x, unsigned int src_y,
+    unsigned int size_x);
+
+  rclcpp::Time last_callback_time_;
+  double min_callback_interval_ = 0.2;  // seconds, e.g., 5 Hz max
+  rclcpp::Clock::SharedPtr clock_;
+
+  unsigned int size_x;
+  unsigned int size_y;
+  double resolution;
+  int    inscribed_cells;
+  int    inflation_cells;
+
+
+  // === Parameters ===
   bool enabled_;
+  double inscribed_radius_;
   double avoidance_radius_;
+  double decay_time_;
   std::string sub_topic_;
+  std::string global_frame_;
+  double resolution_;  // costmap resolution
 
-  // Pointcloud subscription
-  void pointcloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
-  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_sub_;
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr detection_pub_;
-  visualization_msgs::msg::MarkerArray m_array_;
+  // === TF Buffer & Listener ===
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  geometry_msgs::msg::TransformStamped map_to_odom_;
 
-//   std::vector<geometry_msgs::msg::Point> person_points_;
-//   std::vector<geometry_msgs::msg::Point> dog_points_;
-
-
-
-
-
-
-
-
-
-
+  // === Costmap Related ===
+  nav2_costmap_2d::Costmap2D * costmap_{nullptr};
+  bool need_recalculation_{false};
+  bool dirty_{false};
   double last_min_x_, last_min_y_, last_max_x_, last_max_y_;
 
-  // Indicates that the entire gradient should be recalculated next time.
-  bool need_recalculation_;
-
-  // Size of gradient in cells
-  int GRADIENT_SIZE = 20;
-  // Step of increasing cost per one cell in gradient
-  int GRADIENT_FACTOR = 10;
-
-
-protected:
-  // Add these members
-  bool dirty_;
-  std::mutex detection_mutex_;
-  nav2_costmap_2d::Costmap2D * costmap_{nullptr};  // your private buffer
-
-  int last_marker_count_{0};
-
+  // === Detection and Processing ===
   struct Detection {
     double x;
     double y;
     rclcpp::Time stamp;
-    
-    Detection(double x, double y, rclcpp::Time stamp) 
-      : x(x), y(y), stamp(stamp) {}
+
+    Detection(double x_, double y_, rclcpp::Time stamp_)
+    : x(x_), y(y_), stamp(stamp_) {}
   };
-  
+
   std::vector<Detection> detections_;
-  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-  std::string global_frame_;
-  double resolution_;
+  std::mutex detection_mutex_;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_sub_;
+  void pointcloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
 
-  double detection_min_x_;
-double detection_min_y_;
-double detection_max_x_;
-double detection_max_y_;
+  // === Visualization ===
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr detection_pub_;
+  visualization_msgs::msg::MarkerArray m_array_;
+  int last_marker_count_{0};
 
-rclcpp::Time last_detection_time_;
+  // === Optional (if needed later) ===
+  // std::vector<Detection> persistent_detections_;
+  // rclcpp::Time last_detection_time_;
+  // bool first_update_{true};
+  unsigned char computeCost(double distance) const;
+  double merge_threshold_;
+  size_t last_detection_count_;
+  std::vector<std::pair<unsigned int, unsigned int>> last_inflated_cells_;
 
-std::vector<Detection> persistent_detections_;
-bool first_update_{true};
+
 };
 
-}  // namespace nav2_gradient_costmap_plugin
+}  // namespace yolo_costmap_package
 
 #endif  // YOLO_LAYER_HPP_
