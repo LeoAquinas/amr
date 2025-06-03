@@ -11,7 +11,7 @@ from yaml.loader import SafeLoader
 from yolo_msgs.msg import InferenceResult, InferenceArray
 
 # Load the YAML file
-with open("/home/heisenburg/agv/src/YOLO/yolo/coco.yaml", mode ='r') as f:
+with open("/home/jetson/agv/src/amr/YOLO/yolo/coco.yaml", mode ='r') as f:
     data = yaml.load(f, Loader = SafeLoader)
 
 class publisherNode(Node):
@@ -24,12 +24,12 @@ class publisherNode(Node):
         #Create pubilshers
         self.yolo_img_publisher = self.create_publisher(Image, '/camera/inference_img', 10)
 
-        self.yolo_data_publisher = self.create_publisher(InferenceArray, '/camera/inference_data', 1)
+        self.yolo_data_publisher = self.create_publisher(InferenceArray, '/camera/inference_data',10)
         
         self.bridge = cv_bridge.CvBridge()
 
         # Load a model
-        self.model = YOLO("yolo11n.pt")  # pretrained YOLO11n model
+        self.model = YOLO("/home/jetson/agv/src/amr/YOLO/yolo11n.pt")  # pretrained YOLO11n model
 
         self.camera_subscriber()
 
@@ -37,7 +37,7 @@ class publisherNode(Node):
     def camera_subscriber(self):
          self.subscription = self.create_subscription(
               Image,
-              '/depth_camera/image_raw',
+              '/camera/realsense2_camera/color/image_raw',
               self.subscription_callback,
               10
          )
@@ -55,7 +55,7 @@ class publisherNode(Node):
 
             # Load YOLO model (make sure the model is loaded only once, not inside the callback)
             if not hasattr(self, 'model'):
-                self.model = YOLO("yolo11n.pt")  # Load the pretrained YOLO11n model
+                self.model = YOLO("yolo8n.pt")  # Load the pretrained YOLO11n model
 
             # Run inference on the source
             #FOR NOW USE DEFAULT BUILT IN CV2 SHOW ARGUMENT 1ST

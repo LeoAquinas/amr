@@ -7,8 +7,8 @@ def generate_launch_description():
     return LaunchDescription([
         ExecuteProcess(
             cmd=[
-                '/home/heisenburg/venvs/numpy1241/bin/python3',
-                '/home/heisenburg/phy_test/install/yolo/lib/yolo/yolo_publisher'    # Change dir path
+                '/home/jetson/venvs/numpy1241/bin/python3',
+                '/home/jetson/agv/install/yolo/lib/yolo/yolo_publisher'    # Change dir path
             ],
             output='screen',
             shell=False
