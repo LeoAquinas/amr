@@ -302,6 +302,8 @@ Arduino Dependencies (recommended to install through Arduino IDE rather than clo
 The CytronMotorDrivers library was used as the motor controllers for the AMR was the MDDS10. For other types of controllers, the Arduino .ino code would need to be updated for motor interfacing.
 
 If port access is denied, try [this](https://support.arduino.cc/hc/en-us/articles/360016495679-Fix-port-access-on-Linux)
+**During usage of Jetson port, usb might not be able to be detected. To enable usb detection by Jetson, need to install and build kernel driver for USB**
+->[Kernel Source](https://developer.nvidia.com/embedded/jetson-linux-r3643)
 
 ###
 
