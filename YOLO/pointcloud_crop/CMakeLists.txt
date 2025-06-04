@@ -11,8 +11,9 @@ find_package(sensor_msgs     REQUIRED)
 find_package(pcl_conversions REQUIRED)    # :contentReference[oaicite:0]{index=0}
 find_package(pcl_ros         REQUIRED)    # ROS wrapper for PCL filters :contentReference[oaicite:1]{index=1}
 find_package(PCL             REQUIRED COMPONENTS common filters)
-find_package(yolo_msgs       REQUIRED)   
-
+find_package(yolo_msgs       REQUIRED) 
+find_package(yaml-cpp REQUIRED)  
+include_directories(${YAML_CPP_INCLUDE_DIRS})
 
 add_executable(pointcloud_crop src/pointcloud_crop.cpp)
 target_include_directories(pointcloud_crop PUBLIC
@@ -27,10 +28,12 @@ ament_target_dependencies(pointcloud_crop
   pcl_conversions
   pcl_ros
   yolo_msgs
+  yaml-cpp
 )
 
 target_link_libraries(pointcloud_crop
   ${PCL_LIBRARIES}
+  yaml-cpp
 )
 
 install(TARGETS pointcloud_crop

@@ -4,15 +4,23 @@
 #include <pcl/filters/crop_box.h>
 #include <yolo_msgs/msg/inference_array.hpp>
 
+#include <yaml-cpp/yaml.h>
+#include <unordered_map>
+#include <string>
+
 class CropBoxNode : public rclcpp::Node {
 public:
   CropBoxNode() : Node("crop_box_node") {
+    this->declare_parameter<std::string>("config_path", "/home/jetson/agv/src/amr/YOLO/pointcloud_crop/config/filter_config.yaml");
+    std::string config_path = this->get_parameter("config_path").as_string();
+    loadConfig(config_path);
+
     pc_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
-      "/depth_camera/points", 1,
+      "/camera/realsense2_camera/depth/color/points", 10,
       std::bind(&CropBoxNode::cloudCb, this, std::placeholders::_1));
 
     yolo_sub_ = create_subscription<yolo_msgs::msg::InferenceArray>(
-      "/camera/inference_data", 1,
+      "/camera/inference_data", 10,
       std::bind(&CropBoxNode::dataCallback, this, std::placeholders::_1));
 
     cropped_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
@@ -20,6 +28,24 @@ public:
   }
 
 private:
+  void loadConfig(const std::string& path) {
+    try {
+      YAML::Node config = YAML::LoadFile(path);
+      if (config["filter"]) {
+        for (const auto& item : config["filter"]) {
+          std::string class_name = item.first.as<std::string>();
+          float threshold = item.second.as<float>();
+          class_conf_thresholds_[class_name] = threshold;
+        }
+        RCLCPP_INFO(this->get_logger(), "Loaded %zu filter rules", class_conf_thresholds_.size());
+      } else {
+        RCLCPP_WARN(this->get_logger(), "No 'filter' section found in YAML config.");
+      }
+    } catch (const std::exception &e) {
+      RCLCPP_ERROR(this->get_logger(), "Failed to load YAML config: %s", e.what());
+    }
+  }
+    
   void cloudCb(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
     latest_cloud_ = msg;
     processPointCloud();
@@ -32,7 +58,7 @@ private:
 
   void processPointCloud() {
     if (!latest_cloud_ || !latest_yolo_results_) {
-      RCLCPP_INFO(this->get_logger(), "Waiting for both point cloud and detection data...");
+      // RCLCPP_INFO(this->get_logger(), "Waiting for both point cloud and detection data...");
       return;
     }
 
@@ -44,23 +70,29 @@ private:
 
     // Create combined cloud for all detections
     pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    const int width_px = 128;  // Update with actual camera resolution
-    const int height_px = 96;  // Update with actual camera resolution
+    const int width_px = 424;  // Update with actual camera resolution
+    const int height_px = 240;  // Update with actual camera resolution
 
     for (const auto& detection : latest_yolo_results_->inference_result) {
+      // Cross check with yaml settings
+      auto it = class_conf_thresholds_.find(detection.class_name);
+      if (it == class_conf_thresholds_.end() || detection.confidence < it->second) {
+        continue;
+      }
+
       // Convert YOLO pixel coordinates to normalized device coordinates
       float xmin_ndc = 3.0f * (detection.left / static_cast<float>(width_px)) - 1.5f;
       float xmax_ndc = 3.0f * (detection.right / static_cast<float>(width_px)) - 1.5f;
       float ymin_ndc = 3.0f * (detection.bottom / static_cast<float>(height_px)) - 1.5f;
       float ymax_ndc = 3.0f * (detection.top / static_cast<float>(height_px)) - 1.5f;
 
-      RCLCPP_INFO(this->get_logger(), "xmin_ndc, %ld", detection.left);
-      RCLCPP_INFO(this->get_logger(), "xmax_ndc, %ld", detection.right);
-      RCLCPP_INFO(this->get_logger(), "ymin_ndc, %ld", detection.bottom);
-      RCLCPP_INFO(this->get_logger(), "ymax_ndc, %ld", detection.top);
+      // RCLCPP_INFO(this->get_logger(), "xmin_ndc, %ld", detection.left);
+      // RCLCPP_INFO(this->get_logger(), "xmax_ndc, %ld", detection.right);
+      // RCLCPP_INFO(this->get_logger(), "ymin_ndc, %ld", detection.bottom);
+      // RCLCPP_INFO(this->get_logger(), "ymax_ndc, %ld", detection.top);
+      // RCLCPP_INFO(this->get_logger(), "name:  %s", detection.class_name.c_str());
+      // RCLCPP_INFO(this->get_logger(), "confidence:  %.2f", detection.confidence);
 
-      RCLCPP_INFO(this->get_logger(), "xmin_ndc, %f", xmin_ndc);
-      RCLCPP_INFO(this->get_logger(), "xmax_ndc, %f", xmax_ndc);
       // Configure crop box for this detection
       pcl::CropBox<pcl::PointXYZ> crop;
       crop.setInputCloud(cloud);
@@ -118,6 +150,8 @@ private:
     // Publish your (possibly empty) cloud
     cropped_pub_->publish(out);
   }
+
+  std::unordered_map<std::string, float> class_conf_thresholds_;
 
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pc_sub_;
   rclcpp::Subscription<yolo_msgs::msg::InferenceArray>::SharedPtr yolo_sub_;

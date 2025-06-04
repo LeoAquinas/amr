@@ -19,7 +19,6 @@ class publisherNode(Node):
     #This is the parent function which nests the process function listen()
     def __init__(self):
         super().__init__("yolo_publisher")
-        print("helo")
         
         #Create pubilshers
         self.yolo_img_publisher = self.create_publisher(Image, '/camera/inference_img', 10)
@@ -29,7 +28,13 @@ class publisherNode(Node):
         self.bridge = cv_bridge.CvBridge()
 
         # Load a model
-        self.model = YOLO("/home/jetson/agv/src/amr/YOLO/yolo11n.pt")  # pretrained YOLO11n model
+        # Initial loading of model and generating .engine file
+        # Generation of file would take a bit of time, once done, can comment out and make use of engine file for optimised perf
+        # self.model_initial = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # self.model_initial.export(format="engine")
+
+        self.model = YOLO("/home/jetson/agv/src/amr/YOLO/yolov8n.engine")
 
         self.camera_subscriber()
 
@@ -59,7 +64,7 @@ class publisherNode(Node):
 
             # Run inference on the source
             #FOR NOW USE DEFAULT BUILT IN CV2 SHOW ARGUMENT 1ST
-            results = self.model(cv_img, show=False)  # list of Results objects
+            results = self.model(cv_img, show=False, verbose=False, device='cuda')  # list of Results objects
 
             # Create publishing array
             inference_array = InferenceArray()
@@ -99,9 +104,9 @@ class publisherNode(Node):
                     data_msg.left = self.bb_left
                     data_msg.bottom = self.bb_bottom
                     data_msg.right = self.bb_right
-
+                    data_msg.confidence = round(float(confidence), 2)
                     inference_array.inference_result.append(data_msg)
-                    print(inference_array)
+                    # print(inference_array)
 
             #Image
             display_img = cv2.resize(cv_img, (128, 96))  # Width, Height
