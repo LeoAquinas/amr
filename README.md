@@ -31,6 +31,7 @@ sudo apt install ros-${ROS_DISTRO}-image-transport-plugins
 
 
 ### ORBSLAM3
+**Due to hardware limitations this has been removed from the implementation, however if able to include this in Kalman Filter, robot odometry can improve**
 Install ORBSLAM3 dependencies
   ##### Initial Dependencies:
   ```
@@ -246,15 +247,28 @@ To use the IntelRealSense camera in ROS2, 2 steps are required.
 
 
 ### Voice Control
+**Due to GPU usage for kokoro onnx, need to use onnxruntime-gpu**
+**onnxruntime-gpu installed following [ultralytics documentation](https://docs.ultralytics.com/guides/nvidia-jetson/#install-onnxruntime-gpu)**
+**Due to numpy version issue, kokoro-onnx will be installed in a virtual environment**
+```
+python3 -m venv ~/venvs/kokoro
+source ~/venvs/kokoro/bin/activate
+
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl
+```
 Dependencies:
 ```
+# Install compatible version of numpy for onnx
+pip install numpy==1.23.5
 pip install -U kokoro-onnx
 pip install soundfile
 pip install faster-whisper
 pip install SpeechRecognition
 pip install sounddevice
-pip install ollama
+curl -fsSL https://ollama.com/install.sh | sh
+deactivate
 ```
+To make use of gpu for kokoro, refer to [this](https://www.reddit.com/r/LocalLLaMA/comments/1htwkba/comment/m5jm0ta/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) post
   References:
   [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
   [ollama](https://github.com/ollama/ollama-python)
@@ -272,18 +286,39 @@ Dependencies:
 
 To resolve: 
 Dependencies are installed in a virtual environment and the yolo node is launched using a launch file.
+**Install ultralytics following [this](https://docs.ultralytics.com/guides/nvidia-jetson/#start-with-native-installation)**
 ```
 python3 -m venv ~/venvs/numpy1241
 source ~/venvs/numpy1241/bin/activate
+
+sudo apt update
+sudo apt install python3-pip -y
+pip install -U pip
 pip install ultralytics
-pip install numpy==1.24.1
 
 deactivate
 ```
+**Restart system**
+```
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get -y install libcusparselt0 libcusparselt-dev
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl
+```
 **Edit yolo_launcher launch file path to suit Device**
-
-
-
+To fully optimize yolo performance, make use of tensorrt
+1st, we need to [install tensorrt](https://forums.developer.nvidia.com/t/jetson-orin-nano-developer-kit-jetpack-cuda-tensorflow-with-gpu-and-tensorrt/260678/6)
+...
+#This will be installed in root, so find the site-package and transfer it to the venv site package for numpy1241
+sudo apt install python3-libnvinfer*
+...
+2nd we install onnx in venv
+```
+pip install onnx
+```
 
 
 
@@ -323,6 +358,7 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --executo
 
 
 ## Commands
+### Standalone Executions
 Start LiDAR
 ```
 ros2 launch sllidar_ros2 view_sllidar_a1_launch.py
@@ -330,42 +366,59 @@ ros2 launch sllidar_ros2 view_sllidar_a1_launch.py
 
 Start Camera
 ```
-ros2 run realsense2_camera realsense2_camera_node --ros-args -p pointcloud.enable:=true -p enable_color:=true -p enable_depth:=true 
-```
-**Above cmd might have issues publishing rgb image, can use this instead:**
-```
 ros2 launch realsense2_camera camera_launch.launch.py 
 ```
-
 
 Start rf2o
 ```
 ros2 launch rf2o_laser_odometry rf2o_laser_odometry.launch.py 
 ```
 
+Start pointcloud cropping based on yolo detections
+```
+ros2 run pointcloud_crop pointcloud_crop
+```
+
+Start yolo
+```
+ros2 launch yolo_launcher yolo_launcher
+```
+
+### Overall Execution
+Launch robot bringup to start robot
+```
+ros2 launch amr test_launch_sim.launch.py 
+```
+
+Initiate voice/speech
+```
+python3 /home/jetson/agv/src/amr/venv_run/kokoro/kokoro_launcher.py
+```
+
+Serial connection
+```
+ros2 run serial_test serial_test
+```
+
+Mapping process
+```
+ros2 launch launch_amr map.launch.py 
+```
+
+Navigation process
+```
+ros2 launch launch_amr nav.launch.py 
+```
+
+Navigation process with custom plugin
+```
+ros2 launch launch_amr nav_yolo.launch.py 
+```
+
+
+### Deprecated
+
 Start ORBSLAM3
 ```
 ros2 run orbslam3 stereo /home/jetson/agv/src/vslam/orbslam3_ros2/vocabulary/ORBvoc.txt /home/jetson/agv/src/vslam/orbslam3_ros2/config/stereo/RealSense_D435i.yaml false
 ```
-
-
-
-Launch robot bringup to start robot
-```
-ros2 launch
-```
-Launch voice control
-```
-```
-Launch RTAB-Map for mapping
-```
-ros2 launch rtabmap_launch rtabmap.launch.py subscribe_rgbd:="true" rtabmap_args:="--delete_db_on_start" odom_topic:="/odom_rf2o"
-```
-Launch Nav2
-```
-```
-
-
-
-
-
