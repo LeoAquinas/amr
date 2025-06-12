@@ -1,0 +1,25 @@
+def lifecycleShutdown(self):
+        """Shutdown nav2 lifecycle system."""
+        self.info('Shutting down lifecycle nodes based on lifecycle_manager.')
+
+        timeout_sec = 5.0  # max total wait time
+        for srv_name, srv_type in self.get_service_names_and_types():
+            if srv_type[0] == 'nav2_msgs/srv/ManageLifecycleNodes':
+                self.info(f'Shutting down {srv_name}')
+                mgr_client = self.create_client(ManageLifecycleNodes, srv_name)
+
+                start_time = time.time()
+                while not mgr_client.wait_for_service(timeout_sec=1.0):
+                    if time.time() - start_time > timeout_sec:
+                        self.info(f'Timeout waiting for {srv_name} service. Skipping shutdown for this service.')
+                        break
+                    self.info(f'{srv_name} service not available, waiting...')
+
+                else:  # Only send shutdown if service became available
+                    req = ManageLifecycleNodes.Request()
+                    req.command = ManageLifecycleNodes.Request().SHUTDOWN
+                    future = mgr_client.call_async(req)
+                    rclpy.spin_until_future_complete(self, future)
+                    future.result()
+
+        return
