@@ -55,6 +55,9 @@ class SerialSubscriber(Node):
             10
         )
 
+        self.timer_period = 0.1
+        self.create_timer(self.timer_period, self.send_cmd_to_arduino)
+
     def poll_arduino(self):
         """Periodically read two lines from the Arduino to keep the buffer flowing."""
         try:
@@ -84,14 +87,17 @@ class SerialSubscriber(Node):
         self.get_logger().info(
             f"Received /cmd_vel → Linear.x={msg.linear.x:.2f}, Angular.z={msg.angular.z:.2f}"
         )
-        if self.arduino_connected:
-            # build and write immediately
-            cmd = f"VEL:{msg.linear.x:.2f},{msg.angular.z:.2f}\n".encode('utf-8')
-            try:
-                self.ser.write(cmd)
-                # self.ser.flush()               # force it out the USB driver ASAP
-            except Exception as e:
-                self.get_logger().error(f"Write error: {e}")
+        # build and write immediately
+        self.latest_cmd = f"VEL:{msg.linear.x:.2f},{msg.angular.z:.2f}\n".encode('utf-8')
+
+    def send_cmd_to_arduino(self):
+            if self.arduino_connected:
+                try:
+                    self.ser.write(self.latest_cmd)
+                    # self.ser.flush()               # force it out the USB driver ASAP
+                except Exception as e:
+                    self.get_logger().error(f"Write error: {e}")
+                
 
 def main(args=None):
     rclpy.init(args=args)

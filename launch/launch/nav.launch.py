@@ -87,7 +87,8 @@ def generate_launch_description():
     rtabmap = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
-                )]), launch_arguments={'use_sim_time': 'false',
+                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_official_nav_copy.db',
+                                       'use_sim_time': 'false',
                                        'rtabmap_viz': 'false',
                                        'localization': 'true',
                                        'subscribe_rgbd': 'true',
@@ -135,8 +136,10 @@ def generate_launch_description():
                                         ## CHANGE DEPENDING ON NEED
                                         'Grid/Sensor':'2', # Use both laser scan and camera for obstacle detection in global map
                                         'Grid/MaxGroundHeight':'0.02', # All points above 5 cm are obstacles
-                                        'Grid/MaxObstacleHeight':'1.0',  # All points over 1 meter are ignored
-                                       }.items()
+                                        'Grid/MaxObstacleHeight':'2.0',  # All points over 1 meter are ignored
+                                        'OriginStart': 'true',
+                                        'initial_pose' : '0.0 0.0 0.0 0.0 0.0 0.0'
+                                }.items()
     )
 
     # Compute quaternion of the IMU
@@ -148,6 +151,13 @@ def generate_launch_description():
                          'world_frame':'enu', 
                          'publish_tf':False}],
             remappings=[('imu/data_raw', '/camera/realsense2_camera/imu')]
+            )
+    
+    # Rotate RTABMap odom for evo analysis
+    odom_rotator = Node(
+            package='odom_rotator',
+            executable='odom_rotator',
+            output='screen'
             )
     
     # UKF
@@ -190,6 +200,7 @@ def generate_launch_description():
         realsense,
         ukf,
         quaternion,
+        odom_rotator,
         # rtabmap,
 
 
