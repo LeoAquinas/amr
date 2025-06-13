@@ -44,6 +44,7 @@ def main():
     # navigator.lifecycleStartup()
 
     # Wait for navigation to fully activate, since autostarting nav2
+    # navigator.waitUntilNav2Active(localizer='')
     navigator.waitUntilNav2Active()
 
     # If desired, you can change or load the map as well

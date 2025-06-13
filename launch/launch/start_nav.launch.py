@@ -9,7 +9,7 @@ def generate_launch_description():
     rosbag_process = ExecuteProcess(
         cmd=[
             'ros2', 'bag', 'record', '--output',
-            '/media/jetson/6252efc3-834a-466b-90d3-0028ea2e8da5/home/orin_nano/bag/nav15',
+            '/media/jetson/6252efc3-834a-466b-90d3-0028ea2e8da5/home/orin_nano/bag/nav31',
             '/camera/realsense2_camera/color/image_raw',
             '/camera/realsense2_camera/depth/color/points',
             '/camera/realsense2_camera/depth/image_rect_raw',
@@ -62,6 +62,7 @@ def generate_launch_description():
             '/odom_rgbd_image',
             '/odometry/filtered',
             '/parameter_events',
+            '/plan',
             '/rgbd_image',
             '/rgbd_image/compressed',
             '/robot_description',
@@ -86,7 +87,7 @@ def generate_launch_description():
         period=7.0,
         actions=[
             ExecuteProcess(
-                cmd=['python3', '/home/jetson/agv/src/amr/launch/simple_commander/first_point.py'],
+                cmd=['python3', '/home/jetson/agv/src/amr/launch/simple_commander/third_point.py'],
                 output='screen'
             )
         ]

@@ -63,7 +63,7 @@ YoloLayer::onInitialize()
     std::bind(&YoloLayer::pointcloudCallback, this, std::placeholders::_1));
 
   detection_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>(
-    "detection/detected_cloud", 1);
+    "detection/detected_cloud", 10);
 
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);

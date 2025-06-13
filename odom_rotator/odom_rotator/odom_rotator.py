@@ -22,7 +22,7 @@ class OdomAxisSwap(Node):
         new_msg.child_frame_id = msg.child_frame_id
 
         # Position with swapped axes
-        new_msg.pose.pose.position.x = x_new
+        new_msg.pose.pose.position.x = -x_new
         new_msg.pose.pose.position.y = y_new
         new_msg.pose.pose.position.z = msg.pose.pose.position.z
 

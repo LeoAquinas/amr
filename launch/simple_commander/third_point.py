@@ -29,14 +29,14 @@ def main():
     navigator = BasicNavigator()
 
     # Set our demo's initial pose
-    initial_pose = PoseStamped()
-    initial_pose.header.frame_id = 'map'
-    initial_pose.header.stamp = navigator.get_clock().now().to_msg()
-    initial_pose.pose.position.x = 0.0
-    initial_pose.pose.position.y = 0.0
-    initial_pose.pose.orientation.z = 0.0
-    initial_pose.pose.orientation.w = 0.99997
-    navigator.setInitialPose(initial_pose)
+    # initial_pose = PoseStamped()
+    # initial_pose.header.frame_id = 'map'
+    # initial_pose.header.stamp = navigator.get_clock().now().to_msg()
+    # initial_pose.pose.position.x = 0.0
+    # initial_pose.pose.position.y = 0.0
+    # initial_pose.pose.orientation.z = 0.0
+    # initial_pose.pose.orientation.w = 0.99997
+    # navigator.setInitialPose(initial_pose)
 
     # Activate navigation, if not autostarted. This should be called after setInitialPose()
     # or this will initialize at the origin of the map and update the costmap with bogus readings.
@@ -105,6 +105,7 @@ def main():
         print('Goal has an invalid return status!')
 
     navigator.lifecycleShutdown()
+    rclpy.shutdown()
 
     exit(0)
 
