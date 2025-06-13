@@ -194,7 +194,7 @@ local_costmap:
       width: 6
       height: 6
       resolution: 0.05
-      robot_radius: 0.4
+      robot_radius: 0.3
       plugins: ["obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -250,7 +250,7 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: False
-      robot_radius: 0.4
+      robot_radius: 0.3
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -301,7 +301,7 @@ planner_server:
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
       tolerance: 0.5
-      use_astar: true
+      use_astar: false
       allow_unknown: true
 
 smoother_server:
@@ -311,7 +311,7 @@ smoother_server:
     simple_smoother:
       plugin: "nav2_smoother::SimpleSmoother"
       tolerance: 1.0e-11
-      max_its: 3000
+      max_its: 2000
       do_refinement: True
 
 behavior_server:
