@@ -90,8 +90,7 @@ def main():
 
             # Some navigation request change to demo preemption
             if Duration.from_msg(feedback.navigation_time) > Duration(seconds=30.0):
-                goal_pose.pose.position.x = -3.0
-                navigator.goToPose(goal_pose)
+                navigator.clearAllCostmaps()
 
     # Do something depending on the return code
     result = navigator.getResult()
