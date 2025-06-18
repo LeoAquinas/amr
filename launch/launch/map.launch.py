@@ -87,7 +87,7 @@ def generate_launch_description():
     rtabmap = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
-                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap.db',
+                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_lib.db',
                                        'use_sim_time': 'false',
                                        'rtabmap_viz': 'false',
                                        'localization': 'false',
@@ -126,7 +126,7 @@ def generate_launch_description():
                                        'right_camera_info_topic': '/camera/realsense2_camera/infra2/camera_info',
 
                                         # Custom params
-                                        'grid_raytracing':'true', # Fill empty space
+                                        'grid_raytracing':'true', # Fill empty  space
                                         'grid_3d':'false', # Use 2D occupancy
                                         'min_cluster_size':'10',
 
@@ -137,7 +137,7 @@ def generate_launch_description():
                                         ## CHANGE DEPENDING ON NEED
                                         'Grid/Sensor':'2', # Use both laser scan and camera for obstacle detection in global map
                                         'Grid/MaxGroundHeight':'0.02', # All points above 5 cm are obstacles
-                                        'Grid/MaxObstacleHeight':'1.0',  # All points over 1 meter are ignored
+                                        'Grid/MaxObstacleHeight':'1.8',  # All points over 1 meter are ignored
 
                                        }.items()
     )

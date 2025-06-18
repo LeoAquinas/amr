@@ -28,14 +28,14 @@ def main():
 
     navigator = BasicNavigator()
 
-    # # Set our demo's initial pose
+    # Set our demo's initial pose
     # initial_pose = PoseStamped()
     # initial_pose.header.frame_id = 'map'
     # initial_pose.header.stamp = navigator.get_clock().now().to_msg()
-    # initial_pose.pose.position.x = 3.45
-    # initial_pose.pose.position.y = 2.15
-    # initial_pose.pose.orientation.z = 1.0
-    # initial_pose.pose.orientation.w = 0.0
+    # initial_pose.pose.position.x = 0.0
+    # initial_pose.pose.position.y = 0.0
+    # initial_pose.pose.orientation.z = 0.0
+    # initial_pose.pose.orientation.w = 0.99997
     # navigator.setInitialPose(initial_pose)
 
     # Activate navigation, if not autostarted. This should be called after setInitialPose()
@@ -45,6 +45,7 @@ def main():
 
     # Wait for navigation to fully activate, since autostarting nav2
     navigator.waitUntilNav2Active()
+    navigator.waitUntilNav2Active(localizer='')
 
     # If desired, you can change or load the map as well
     # navigator.changeMap('/path/to/map.yaml')
@@ -58,10 +59,10 @@ def main():
     goal_pose = PoseStamped()
     goal_pose.header.frame_id = 'map'
     goal_pose.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose.pose.position.x = 0.0
-    goal_pose.pose.position.y = 0.0
-    goal_pose.pose.orientation.w = 0.0
-    goal_pose.pose.orientation.z = 0.0
+    goal_pose.pose.position.x = 5.460
+    goal_pose.pose.position.y = -2.968
+    goal_pose.pose.orientation.z = -0.696059
+    goal_pose.pose.orientation.w = 0.717933
 
     # sanity check a valid path exists
     # path = navigator.getPath(initial_pose, goal_pose)
@@ -89,7 +90,7 @@ def main():
                 navigator.cancelTask()
 
             # Some navigation request change to demo preemption
-            if Duration.from_msg(feedback.navigation_time) > Duration(seconds=30.0):
+            if Duration.from_msg(feedback.navigation_time) > Duration(seconds=10.0):
                 navigator.clearAllCostmaps()
 
     # Do something depending on the return code
@@ -104,6 +105,7 @@ def main():
         print('Goal has an invalid return status!')
 
     navigator.lifecycleShutdown()
+    rclpy.shutdown()
 
     exit(0)
 

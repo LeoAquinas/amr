@@ -87,7 +87,7 @@ def generate_launch_description():
     rtabmap = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
-                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_official_nav_copy.db',
+                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap.db',
                                        'use_sim_time': 'false',
                                        'rtabmap_viz': 'false',
                                        'localization': 'true',
@@ -172,7 +172,7 @@ def generate_launch_description():
     
     # Nav2
     nav2_package_name = 'nav2_bringup'
-    nav2_params_file = '/home/jetson/agv/src/amr/launch/config/nav2_params.yaml'
+    nav2_params_file = '/home/jetson/agv/src/amr/launch/config/nav2_yolo_params.yaml'
     nav2 = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(nav2_package_name),'launch','navigation_launch.py'

@@ -45,6 +45,7 @@ def main():
 
     # Wait for navigation to fully activate, since autostarting nav2
     navigator.waitUntilNav2Active()
+    navigator.waitUntilNav2Active(localizer='')
 
     # If desired, you can change or load the map as well
     # navigator.changeMap('/path/to/map.yaml')
@@ -58,10 +59,10 @@ def main():
     goal_pose = PoseStamped()
     goal_pose.header.frame_id = 'map'
     goal_pose.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose.pose.position.x = 8.428
-    goal_pose.pose.position.y = -5.681
-    goal_pose.pose.orientation.z = -0.676
-    goal_pose.pose.orientation.w = -0.738
+    goal_pose.pose.position.x = 5.030
+    goal_pose.pose.position.y = 1.206
+    goal_pose.pose.orientation.z = 0.713954
+    goal_pose.pose.orientation.w = 0.699853
 
     # sanity check a valid path exists
     # path = navigator.getPath(initial_pose, goal_pose)
@@ -89,9 +90,8 @@ def main():
                 navigator.cancelTask()
 
             # Some navigation request change to demo preemption
-            if Duration.from_msg(feedback.navigation_time) > Duration(seconds=30.0):
-                goal_pose.pose.position.x = -3.0
-                navigator.goToPose(goal_pose)
+            if Duration.from_msg(feedback.navigation_time) > Duration(seconds=10.0):
+                navigator.clearAllCostmaps()
 
     # Do something depending on the return code
     result = navigator.getResult()

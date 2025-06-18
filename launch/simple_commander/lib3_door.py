@@ -28,7 +28,7 @@ def main():
 
     navigator = BasicNavigator()
 
-    # # Set our demo's initial pose
+    # Set our demo's initial pose
     # initial_pose = PoseStamped()
     # initial_pose.header.frame_id = 'map'
     # initial_pose.header.stamp = navigator.get_clock().now().to_msg()
@@ -44,6 +44,7 @@ def main():
     # navigator.lifecycleStartup()
 
     # Wait for navigation to fully activate, since autostarting nav2
+    navigator.waitUntilNav2Active()
     navigator.waitUntilNav2Active(localizer='')
 
     # If desired, you can change or load the map as well
@@ -58,10 +59,10 @@ def main():
     goal_pose = PoseStamped()
     goal_pose.header.frame_id = 'map'
     goal_pose.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose.pose.position.x = 3.172
-    goal_pose.pose.position.y = -5.463
-    goal_pose.pose.orientation.z = 0.0176
-    goal_pose.pose.orientation.w = 0.99983
+    goal_pose.pose.position.x = 0.142
+    goal_pose.pose.position.y = 4.328
+    goal_pose.pose.orientation.z = 0.466151
+    goal_pose.pose.orientation.w = 0.884616
 
     # sanity check a valid path exists
     # path = navigator.getPath(initial_pose, goal_pose)
@@ -89,9 +90,12 @@ def main():
                 navigator.cancelTask()
 
             # Some navigation request change to demo preemption
+<<<<<<< HEAD:launch/simple_commander/origin.py
             if Duration.from_msg(feedback.navigation_time) > Duration(seconds=30.0):
-                goal_pose.pose.position.x = -3.0
-                navigator.goToPose(goal_pose)
+=======
+            if Duration.from_msg(feedback.navigation_time) > Duration(seconds=10.0):
+>>>>>>> 5c84243 (changed nav params and added lab and lib nav files):launch/simple_commander/lib3_door.py
+                navigator.clearAllCostmaps()
 
     # Do something depending on the return code
     result = navigator.getResult()
