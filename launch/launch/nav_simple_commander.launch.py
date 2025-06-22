@@ -94,6 +94,7 @@ def generate_launch_description():
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
                 )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_lib_official_copy.db',
+                    #'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_official_nav_copy.db',
                                        'use_sim_time': 'false',
                                        'rtabmap_viz': 'false',
                                        'localization': 'true',
@@ -144,7 +145,7 @@ def generate_launch_description():
                                         'Grid/MaxGroundHeight':'0.02', # All points above 5 cm are obstacles
                                         'Grid/MaxObstacleHeight':'2.0',  # All points over 1 meter are ignored
                                         'OriginStart': 'false',
-                                        'initial_pose' : '-0.4 0.0 0.0 0.0 0.0 0.0',
+                                        'initial_pose' : '-0.0 0.0 0.0 0.0 0.0 0.0',
                                         # CHECK MEM ON INIT
                                         # try reduce this
                                         'STMSize': '10',

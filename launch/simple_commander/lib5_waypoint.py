@@ -60,40 +60,40 @@ def main():
     goal_pose1 = PoseStamped()
     goal_pose1.header.frame_id = 'map'
     goal_pose1.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose1.pose.position.x = 1.298
-    goal_pose1.pose.position.y = -0.334
-    goal_pose1.pose.orientation.w = 0.999715
-    goal_pose1.pose.orientation.z = 0.0214425
+    goal_pose1.pose.position.x = 6.394
+    goal_pose1.pose.position.y = -0.637
+    goal_pose1.pose.orientation.w = 0.999886
+    goal_pose1.pose.orientation.z = -0.00916281
     goal_poses.append(goal_pose1)
 
     # additional goals can be appended
     goal_pose2 = PoseStamped()
     goal_pose2.header.frame_id = 'map'
     goal_pose2.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose2.pose.position.x = 2.045
-    goal_pose2.pose.position.y = 2.103
-    goal_pose2.pose.orientation.w = 0.713799
-    goal_pose2.pose.orientation.z = 0.700276
+    goal_pose2.pose.position.x = 5.511
+    goal_pose2.pose.position.y = -3.025
+    goal_pose2.pose.orientation.w = 0.722642
+    goal_pose2.pose.orientation.z = -0.691209
     goal_poses.append(goal_pose2)
 
 
-    goal_pose3 = PoseStamped()
-    goal_pose3.header.frame_id = 'map'
-    goal_pose3.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose3.pose.position.x = 0.357
-    goal_pose3.pose.position.y = 4.936
-    goal_pose3.pose.orientation.w = 0.178631
-    goal_pose3.pose.orientation.z = 0.98378
-    goal_poses.append(goal_pose3)
+    # goal_pose3 = PoseStamped()
+    # goal_pose3.header.frame_id = 'map'
+    # goal_pose3.header.stamp = navigator.get_clock().now().to_msg()
+    # goal_pose3.pose.position.x = 4.514
+    # goal_pose3.pose.position.y = -0.475
+    # goal_pose3.pose.orientation.w = 0.999551
+    # goal_pose3.pose.orientation.z = 0.0268169
+    # goal_poses.append(goal_pose3)
     
-    goal_pose4 = PoseStamped()
-    goal_pose4.header.frame_id = 'map'
-    goal_pose4.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose4.pose.position.x = -0.268
-    goal_pose4.pose.position.y = 0.291
-    goal_pose4.pose.orientation.w = 0.717967
-    goal_pose4.pose.orientation.z = -0.695982
-    goal_poses.append(goal_pose4)
+    # goal_pose4 = PoseStamped()
+    # goal_pose4.header.frame_id = 'map'
+    # goal_pose4.header.stamp = navigator.get_clock().now().to_msg()
+    # goal_pose4.pose.position.x = -0.268
+    # goal_pose4.pose.position.y = 0.291
+    # goal_pose4.pose.orientation.w = 0.717967
+    # goal_pose4.pose.orientation.z = -0.695982
+    # goal_poses.append(goal_pose4)
 
     # sanity check a valid path exists
     # path = navigator.getPath(initial_pose, goal_pose1)
@@ -123,7 +123,8 @@ def main():
 
             # Some follow waypoints request change to demo preemption
             if now - nav_start > Duration(seconds=10.0):
-                navigator.clearAllCostmaps()
+                # navigator.clearAllCostmaps()
+                pass
 
 
     # Do something depending on the return code

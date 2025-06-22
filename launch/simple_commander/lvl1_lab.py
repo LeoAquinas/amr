@@ -59,10 +59,10 @@ def main():
     goal_pose = PoseStamped()
     goal_pose.header.frame_id = 'map'
     goal_pose.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose.pose.position.x = 0.142
-    goal_pose.pose.position.y = 4.328
-    goal_pose.pose.orientation.z = 0.466151
-    goal_pose.pose.orientation.w = 0.884616
+    goal_pose.pose.position.x = 4.082
+    goal_pose.pose.position.y = 2.368
+    goal_pose.pose.orientation.z = 0.6449
+    goal_pose.pose.orientation.w = 0.764018
 
     # sanity check a valid path exists
     # path = navigator.getPath(initial_pose, goal_pose)
@@ -90,11 +90,7 @@ def main():
                 navigator.cancelTask()
 
             # Some navigation request change to demo preemption
-<<<<<<< HEAD:launch/simple_commander/origin.py
-            if Duration.from_msg(feedback.navigation_time) > Duration(seconds=30.0):
-=======
             if Duration.from_msg(feedback.navigation_time) > Duration(seconds=10.0):
->>>>>>> 5c84243 (changed nav params and added lab and lib nav files):launch/simple_commander/lib3_door.py
                 navigator.clearAllCostmaps()
 
     # Do something depending on the return code

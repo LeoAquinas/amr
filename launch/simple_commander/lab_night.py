@@ -13,10 +13,10 @@ class GoalActionClient(Node):
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose = PoseStamped()
         goal_msg.pose.header.frame_id = 'map'
-        goal_msg.pose.pose.position.x = 7.841
-        goal_msg.pose.pose.position.y = -0.357
-        goal_msg.pose.pose.orientation.w = 0.999546
-        goal_msg.pose.pose.orientation.z = -0.0284678
+        goal_msg.pose.pose.position.x = 6.943
+        goal_msg.pose.pose.position.y = 0.0
+        goal_msg.pose.pose.orientation.w = 1.0
+        goal_msg.pose.pose.orientation.z = 0.0
 
         self._action_client.wait_for_server()
         send_goal_future = self._action_client.send_goal_async(goal_msg)

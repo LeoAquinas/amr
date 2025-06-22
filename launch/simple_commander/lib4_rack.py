@@ -59,10 +59,10 @@ def main():
     goal_pose = PoseStamped()
     goal_pose.header.frame_id = 'map'
     goal_pose.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose.pose.position.x = 3.678
-    goal_pose.pose.position.y = 1.833
-    goal_pose.pose.orientation.z = 0.708698
-    goal_pose.pose.orientation.w = 0.705179
+    goal_pose.pose.position.x = 3.580
+    goal_pose.pose.position.y = 1.651
+    goal_pose.pose.orientation.z = 0.718298
+    goal_pose.pose.orientation.w = 0.695614
 
     # sanity check a valid path exists
     # path = navigator.getPath(initial_pose, goal_pose)
@@ -91,7 +91,8 @@ def main():
 
             # Some navigation request change to demo preemption
             if Duration.from_msg(feedback.navigation_time) > Duration(seconds=10.0):
-                navigator.clearAllCostmaps()
+                # navigator.clearAllCostmaps()
+                pass
 
     # Do something depending on the return code
     result = navigator.getResult()
