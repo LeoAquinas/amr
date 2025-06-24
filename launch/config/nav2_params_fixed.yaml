@@ -180,14 +180,7 @@ local_costmap:
       height: 6
       resolution: 0.05
       robot_radius: 0.1
-      plugins: ["obstacle_layer", "yolo_layer", "inflation_layer"]
-      yolo_layer:
-        plugin: "yolo_costmap_package::YoloLayer"
-        enabled: True
-        inscribed_radius: 0.1
-        avoidance_radius: 0.7
-        subscription_topic: /camera/cropped_cloud
-        decay_time: 1.0
+      plugins: ["obstacle_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         inflation_radius: 3.0
@@ -195,7 +188,7 @@ local_costmap:
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: scan #pointcloud
+        observation_sources: scan pointcloud
         scan:
           topic: /scan_filtered
           max_obstacle_height: 5.0
@@ -209,8 +202,8 @@ local_costmap:
         pointcloud:
           topic: /camera/realsense2_camera/depth/color/points
           max_obstacle_height: 2.0
-          clearing: False
-          marking: False
+          clearing: True
+          marking: True
           data_type: "PointCloud2"
           raytrace_max_range: 1.5
           raytrace_min_range: 0.0
@@ -257,14 +250,7 @@ global_costmap:
       robot_radius: 0.1
       resolution: 0.05
       track_unknown_space: true
-      plugins: ["static_layer", "obstacle_layer", "yolo_layer", "voxel_layer", "inflation_layer"]
-      yolo_layer:
-        plugin: "yolo_costmap_package::YoloLayer"
-        enabled: True
-        inscribed_radius: 0.05
-        avoidance_radius: 0.8
-        subscription_topic: /camera/cropped_cloud
-        decay_time: 0.3
+      plugins: ["static_layer", "obstacle_layer", "voxel_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True

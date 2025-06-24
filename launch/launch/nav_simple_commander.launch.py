@@ -185,7 +185,7 @@ def generate_launch_description():
     
     # Nav2
     nav2_package_name = 'nav2_bringup'
-    nav2_params_file = '/home/jetson/agv/src/amr/launch/config/nav2_yolo_params.yaml'
+    nav2_params_file = '/home/jetson/agv/src/amr/launch/config/nav2_params_fixed.yaml'
     nav2 = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(nav2_package_name),'launch','navigation_launch.py'
