@@ -87,7 +87,7 @@ def generate_launch_description():
     rtabmap = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
-                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_lvl1.db',
+                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_mvi.db',
                                        'use_sim_time': 'false',
                                        'rtabmap_viz': 'false',
                                        'localization': 'false',

@@ -93,8 +93,10 @@ def generate_launch_description():
     rtabmap = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
-                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_lib_official_copy.db',
+                )]), launch_arguments={#'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_lib_official_copy.db',
                     #'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_official_nav_copy.db',
+                    # 'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_mvi_2.db',
+                    'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_lvl1.db',
                                        'use_sim_time': 'false',
                                        'rtabmap_viz': 'false',
                                        'localization': 'true',
