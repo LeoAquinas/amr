@@ -9,7 +9,7 @@ def generate_launch_description():
     rosbag_process = ExecuteProcess(
         cmd=[
             'ros2', 'bag', 'record', '--output',
-            '/media/jetson/6252efc3-834a-466b-90d3-0028ea2e8da5/home/orin_nano/bag/lab_lvl1_odom10',
+            '/media/jetson/6252efc3-834a-466b-90d3-0028ea2e8da5/home/orin_nano/bag/lab_cor_dark04',
             '/camera/realsense2_camera/color/image_raw',
             '/camera/realsense2_camera/depth/color/points',
             '/camera/realsense2_camera/depth/image_rect_raw',
@@ -75,8 +75,8 @@ def generate_launch_description():
                 # cmd=['python3', '/home/jetson/agv/src/amr/launch/simple_commander/lib4_rack.py'],
                 # cmd=['python3', '/home/jetson/agv/src/amr/launch/simple_commander/lib5_waypoint.py'],
                 # cmd=['python3', '/home/jetson/agv/src/amr/launch/simple_commander/mvi_lab.py'],
-                cmd=['python3', '/home/jetson/agv/src/amr/launch/simple_commander/lvl1_lab.py'],
-                # cmd=['python3', '/home/jetson/agv/src/amr/launch/simple_commander/lab_night.py'],
+                # cmd=['python3', '/home/jetson/agv/src/amr/launch/simple_commander/lvl1_lab.py'],
+                cmd=['python3', '/home/jetson/agv/src/amr/launch/simple_commander/lab_night.py'],
                 output='screen'
             )
         ]
@@ -94,6 +94,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         rosbag_process,
-        # python_script,
-        # on_script_exit,
+        python_script,
+        on_script_exit,
     ])
