@@ -31,8 +31,8 @@ interrupt_event = threading.Event() # Interrupt thread
 
 # Initialize Kokoro ONNX
 ONNX_PROVIDER = "CUDAExecutionProvider"  # "CPUExecutionProvider"
-session = InferenceSession("/mnt/usb/kokoro/kokoro-v1.0.onnx", providers=[ONNX_PROVIDER])
-kokoro = Kokoro.from_session(session, "/mnt/usb/kokoro/voices-v1.0.bin")
+session = InferenceSession("/home/jetson/agv/src/amr/kokoro/kokoro-v1.0.onnx", providers=[ONNX_PROVIDER])
+kokoro = Kokoro.from_session(session, "/home/jetson/agv/src/amr/kokoro/voices-v1.0.bin")
 
 # kokoro = Kokoro(
 #     model_path="/home/jetson/agv/src/kokoro-v1.0.onnx",
