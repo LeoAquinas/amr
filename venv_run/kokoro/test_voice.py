@@ -41,8 +41,8 @@ kokoro = Kokoro.from_session(session, "/home/jetson/agv/src/amr/kokoro/voices-v1
 
 _cleanup = re.compile(r'[\*]')
 
-# sd.default.blocksize = 8192
-# sd.default.latency = 'low'
+sd.default.blocksize = 2048
+sd.default.latency = 'low'
 
 # List of words were obtained from the Cambrdidge Thesaurus of english
 # To move forwards
@@ -79,9 +79,11 @@ def play_audio(samples, sample_rate):
 def tts_worker():
     """Handles text-to-speech generation with sentence accumulation"""
     sentence_buffer = ""
+    first_input = True  # Track if this is the very first text chunk
+
     while True:
         text = kokoro_queue.get()
-        
+
         if text is None or interrupt_event.is_set():
             # Process remaining text in buffer
             if sentence_buffer:
@@ -96,29 +98,36 @@ def tts_worker():
                 except Exception as e:
                     print(f"Final TTS Error: {e}")
             break
-        
+
+        if text == "<RESET>":
+            sentence_buffer = ""
+            continue
+
         try:
-            # Add new text to buffer
+            # On the very first incoming text, prepend dummy string
+            if first_input:
+                dummy = "."  # or just " " or any short delay string
+                sentence_buffer += dummy
+                first_input = False
+
+            # Add new text to buffer normally
             sentence_buffer += text
-            
+
             # Check for sentence boundaries
             while True:
-                # Find first sentence-ending punctuation
                 punctuations = {'.', '!', '?', '！', '？'}
                 found = None
                 for i, char in enumerate(sentence_buffer):
                     if char in punctuations:
                         found = i
                         break
-                
+
                 if found is None:
                     break  # No complete sentence yet
-                
-                # Extract complete sentence (including punctuation)
-                sentence = sentence_buffer[:i+1].strip()
-                sentence_buffer = sentence_buffer[i+1:].lstrip()
-                
-                # Generate and play audio for complete sentence
+
+                sentence = sentence_buffer[:found+1].strip()
+                sentence_buffer = sentence_buffer[found+1:].lstrip()
+
                 samples, sample_rate = kokoro.create(
                     sentence,
                     voice="af_sarah",
@@ -127,9 +136,10 @@ def tts_worker():
                 )
                 if not interrupt_event.is_set():
                     play_audio(samples, sample_rate)
-                
+
         except Exception as e:
             print(f"TTS Error: {e}")
+
 
 def speech_to_text():
     recognizer = sr.Recognizer()
@@ -191,24 +201,29 @@ def response(input):
 
 # TODO: UNCOMMENT
 def start_threads():
+    # Clear queues
+    while not kokoro_queue.empty():
+        kokoro_queue.get()
+    kokoro_queue.put("<RESET>")  # Signal to reset sentence buffer
+
     # Start streaming thread
-        threading.Thread(
-            target=response,    # Run stream function in background that updates queue
-            args=(result,),
-            daemon=True         # Kills thread if main program exits
+    threading.Thread(
+        target=response,    # Run stream function in background that updates queue
+        args=(result,),
+        daemon=True         # Kills thread if main program exits
+    ).start()
+
+    # Start TTS thread
+    threading.Thread(
+        target=tts_worker,
+        daemon=True
         ).start()
 
-        # Start TTS thread
-        threading.Thread(
-            target=tts_worker,
-            daemon=True
-            ).start()
-
-        # Start interrupt check thread
-        threading.Thread(
-            target=wait_for_interrupt,
-            daemon=True
-        ).start()
+    # Start interrupt check thread
+    threading.Thread(
+        target=wait_for_interrupt,
+        daemon=True
+    ).start()
 
 
 if __name__ == "__main__":

@@ -87,7 +87,7 @@ def generate_launch_description():
     rtabmap = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
-                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_mvi.db',
+                )]), launch_arguments={'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_plc.db',
                                        'use_sim_time': 'false',
                                        'rtabmap_viz': 'false',
                                        'localization': 'false',
@@ -135,7 +135,7 @@ def generate_launch_description():
                                         'Grid/NormalsSegmentation':'false', # Use passthrough filter to detect obstacles
                                         # Create occupancy grid from selected sensor: 0=laser scan, 1=depth image(s) or 2=both laser scan and depth image(s).
                                         ## CHANGE DEPENDING ON NEED
-                                        'Grid/Sensor':'2', # Use both laser scan and camera for obstacle detection in global map
+                                        'Grid/Sensor':'1', # Use both laser scan and camera for obstacle detection in global map
                                         'Grid/MaxGroundHeight':'0.02', # All points above 5 cm are obstacles
                                         'Grid/MaxObstacleHeight':'1.8',  # All points over 1 meter are ignored
 
