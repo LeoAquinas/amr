@@ -2,10 +2,30 @@ import customtkinter as ctk
 from PIL import Image, ImageTk
 import psutil
 import subprocess
+import sys
+import threading
+import os
+import signal
+
+# === Redirect print output to Textbox ===
+class TextRedirector(object):
+    def __init__(self, textbox):
+        self.textbox = textbox
+
+    def write(self, str):
+        # Insert text at the end and scroll to see it
+        self.textbox.configure(state='normal')
+        self.textbox.insert(ctk.END, str)
+        self.textbox.see(ctk.END)
+        self.textbox.configure(state='disabled')
+
+    def flush(self):
+        pass  # Needed for compatibility
 
 # === Globals to track processes and states ===
 robot_process = None
 mic_process = None
+motor_processes = []  # To track multiple motor script processes
 
 # === Button Functions ===
 def start_launch(cmd):
@@ -58,12 +78,28 @@ def on_robot_click():
 def on_mic_click():
     global mic_process
     if mic_process is None or mic_process.poll() is not None:
-        mic_process = start_launch("ros2 launch your_mic_launch_file.launch.py")
+        python_venv = "/home/jetson/venvs/kokoro/bin/python"
+        script = "/home/jetson/agv/src/amr/voice_packages/test_voice.py"
+        mic_process = subprocess.Popen([python_venv, script])
         print("Mic launch started.")
     else:
         kill_process_tree(mic_process.pid)
         mic_process = None
         print("Mic launch stopped.")
+
+def on_motor_click():
+    global motor_processes
+    if motor_processes:  # If already running, stop all
+        for proc in motor_processes:
+            if proc.poll() is None:  # Still running
+                kill_process_tree(proc.pid)
+        motor_processes = []
+        print("Motor scripts stopped.")
+    else:  # Start both motor scripts
+        p1 = subprocess.Popen(['python3', '/home/jetson/agv/src/amr/voice_packages/voice_subscriber.py'])
+        p2 = subprocess.Popen(['python3', '/home/jetson/agv/src/amr/serial_test/serial_test/serial_test.py'])
+        motor_processes = [p1, p2]
+        print("Motor scripts started.")
 
 # === Setup CTk ===
 ctk.set_appearance_mode("Dark")
@@ -91,11 +127,13 @@ except FileNotFoundError:
 try:
     robot_icon = Image.open("/home/jetson/Desktop/icons8-robot-50.png").resize((50, 50))
     mic_icon = Image.open("/home/jetson/Desktop/icons8-microphone-50.png").resize((50, 50))
+    motor_icon = Image.open("/home/jetson/Desktop/icons8-wheel-50.png").resize((50, 50))
     robot_img = ImageTk.PhotoImage(robot_icon)
     mic_img = ImageTk.PhotoImage(mic_icon)
+    motor_img = ImageTk.PhotoImage(motor_icon)
 except FileNotFoundError:
     print("Robot or mic icon images not found!")
-    robot_img = mic_img = None
+    robot_img = mic_img = motor_img = None
 
 # === Toggle Theme ===
 def toggle_theme():
@@ -138,21 +176,22 @@ button3.grid(row=2, column=0, pady=10, padx=10, sticky="ew")
 button4 = ctk.CTkButton(left_frame, text="Machine Vision Lab", command=on_button4_click)
 button4.grid(row=3, column=0, pady=10, padx=10, sticky="ew")
 
-# Spacer
-spacer = ctk.CTkFrame(left_frame, fg_color="transparent")
-spacer.grid(row=4, column=0, sticky="nsew")
-
-# Bottom Buttons
+# Bottom Buttons Frame
 bottom_button_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
 bottom_button_frame.grid(row=5, column=0, sticky="ew", padx=10, pady=(20, 10))
 bottom_button_frame.grid_columnconfigure(0, weight=1)
 bottom_button_frame.grid_columnconfigure(1, weight=1)
 
+# Motor Button (centered above Robot and Mic buttons)
+motor_button = ctk.CTkButton(bottom_button_frame, width=50, height=50, text="", image=motor_img, command=on_motor_click)
+motor_button.grid(row=0, column=0, columnspan=2, pady=(0, 10), sticky="ew")
+
+# Robot and Mic buttons below motor button
 robot_button = ctk.CTkButton(bottom_button_frame, width=50, height=50, text="", image=robot_img, command=on_robot_click)
-robot_button.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+robot_button.grid(row=1, column=0, sticky="ew", padx=(0, 10))
 
 mic_button = ctk.CTkButton(bottom_button_frame, width=50, height=50, text="", image=mic_img, command=on_mic_click)
-mic_button.grid(row=0, column=1, sticky="ew", padx=(10, 0))
+mic_button.grid(row=1, column=1, sticky="ew", padx=(10, 0))
 
 # === Right Panel ===
 right_frame = ctk.CTkFrame(app, corner_radius=0)
@@ -170,6 +209,7 @@ try:
 except FileNotFoundError:
     image_label = ctk.CTkLabel(right_frame, text="Image not found")
     image_label.place(relx=0.5, rely=0.5, anchor="center")
+
 
 # === Run App ===
 app.mainloop()
