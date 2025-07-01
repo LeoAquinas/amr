@@ -60,26 +60,26 @@ const float MAX_LINEAR_VEL = 0.5;   // Maximum linear velocity in m/s
 const float MAX_ANGULAR_VEL = 1.0;  // Maximum angular velocity in rad/s
 
 // Ultrasonic sensor pins
-// const int trigPin1 = 10;
-// const int echoPin1 = 9;
-// const int maxDist1 = 20; //cm
-// const int stopDist1 = 8;
+ const int trigPin1 = 6;
+ const int echoPin1 = 7;
+ const int maxDist1 = 20; //cm
+ const int stopDist1 = 10;
 
 const int trigPin2 = 8;
 const int echoPin2 = 9;
 const int maxDist2 = 20; //cm
-const int stopDist2 = 8;
+const int stopDist2 = 4;
 
-// const int trigPin3 = 10;
-// const int echoPin3 = 9;
-// const int maxDist3 = 20; //cm
-// const int stopDist3 = 8;
+ const int trigPin3 = 10;
+ const int echoPin3 = 11;
+ const int maxDist3 = 20; //cm
+ const int stopDist3 = 10;
 
 // Setup ultrasonic sensor
 // NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
-// NewPing sonar1(trigPin1, echoPin1, maxDist1);
-NewPing sonar2(trigPin2, echoPin2, maxDist2);
-// NewPing sonar3(trigPin3, echoPin3, maxDist3);
+ NewPing sonar1(trigPin1, echoPin1, maxDist1);
+ NewPing sonar2(trigPin2, echoPin2, maxDist2);
+ NewPing sonar3(trigPin3, echoPin3, maxDist3);
 
 // FS i6X pins
 double ch2=49;
@@ -91,7 +91,7 @@ int motorSpeedLeft = 0;
 int motorSpeedRight = 0;
 
 unsigned long last_cmd_vel_time = 0;
-const unsigned long CMD_VEL_TIMEOUT = 500;  // ms
+const unsigned long CMD_VEL_TIMEOUT = 200;  // ms
 
 
 void setup() {
@@ -160,30 +160,62 @@ void motorRunNormal() {
 
     // Backward
     else if(ch2 < 1000)
-    {  
-      leftMotor.setSpeed(-motorSpeedLeft);  
-      rightMotor.setSpeed(-motorSpeedRight);
+    {
+      if (!obstacleInDirection("back")) {
+        leftMotor.setSpeed(-motorSpeedLeft);  
+        rightMotor.setSpeed(-motorSpeedRight);
+      } else {
+        leftMotor.setSpeed(0);
+        rightMotor.setSpeed(0);
+      }
     }
-
+    
     // Left
     else if(ch4 < 1000)
-    {  
-      leftMotor.setSpeed(-motorSpeedLeft);  
-      rightMotor.setSpeed(motorSpeedRight);
+    {
+      if (!obstacleInDirection("left")) {
+        leftMotor.setSpeed(-motorSpeedLeft);  
+        rightMotor.setSpeed(motorSpeedRight);
+      } else {
+        leftMotor.setSpeed(0);
+        rightMotor.setSpeed(0);
+      }
     }
-
+    
     // Right
     else if(ch4 > 1600)
-    {  
-      leftMotor.setSpeed(motorSpeedLeft);  
-      rightMotor.setSpeed(-motorSpeedRight);
+    {
+      if (!obstacleInDirection("right")) {
+        leftMotor.setSpeed(motorSpeedLeft);  
+        rightMotor.setSpeed(-motorSpeedRight);
+      } else {
+        leftMotor.setSpeed(0);
+        rightMotor.setSpeed(0);
+      }
     }
+
     else
     {
       leftMotor.setSpeed(0);
       rightMotor.setSpeed(0);
     }
   }
+}
+
+bool obstacleInDirection(String dir) {
+  if (dir == "back") {
+    int dist = sonar2.ping_cm();
+    if (dist > 0 && dist < stopDist2) return true;
+  }
+  else if (dir == "left") {
+    int dist = sonar1.ping_cm();
+    if (dist > 0 && dist < stopDist1) return true;
+  }
+  else if (dir == "right") {
+    int dist = sonar3.ping_cm();
+    if (dist > 0 && dist < stopDist3) return true;
+  }
+  return false;
 }
 
 void loop() {
@@ -246,9 +278,9 @@ void loop() {
   // }
 
   // Read pulses once with timeout to avoid blocking forever
-  ch2 = pulseIn(49, HIGH);  // 25ms timeout
-  ch3 = pulseIn(51, HIGH);
-  ch4 = pulseIn(53, HIGH);
+  ch2 = pulseIn(49, HIGH, 50000);  // 25ms timeout
+  ch3 = pulseIn(51, HIGH, 50000);
+  ch4 = pulseIn(53, HIGH, 50000);
 
   bool rc_active = false;
 
@@ -313,8 +345,27 @@ void loop() {
     //   Serial.println(distance2);
 
     // Normal motor movement
-    leftMotor.setSpeed(left_pwm);  
-    rightMotor.setSpeed(right_pwm); 
+    // Check ultrasonic sensors based on intended direction
+    bool stop = false;
+    
+    if (left_pwm < 0 && right_pwm < 0 && obstacleInDirection("back")) {
+      stop = true;
+    } else if (left_pwm < 0 && right_pwm > 0 && obstacleInDirection("left")) {
+      stop = true;
+    } else if (left_pwm > 0 && right_pwm < 0 && obstacleInDirection("right")) {
+      stop = true;
+    }
+    
+    if (stop) {
+      leftMotor.setSpeed(0);
+      rightMotor.setSpeed(0);
+      digitalWrite(test, HIGH);  // optional indicator
+    } else {
+      leftMotor.setSpeed(left_pwm);  
+      rightMotor.setSpeed(right_pwm); 
+      digitalWrite(test, LOW);
+    }
+ 
 
     // Sanity check using us
 
@@ -356,6 +407,7 @@ void loop() {
       //   leftMotor.setSpeed(0);  
       //   rightMotor.setSpeed(0);
       //   digitalWrite(test, HIGH); 
+      
       // }
     // }
 
