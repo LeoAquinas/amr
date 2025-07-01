@@ -6,6 +6,7 @@ import sys
 import threading
 import os
 import signal
+import time
 
 # === Redirect print output to Textbox ===
 class TextRedirector(object):
@@ -68,7 +69,7 @@ def on_button4_click():
 def on_robot_click():
     global robot_process
     if robot_process is None or robot_process.poll() is not None:
-        robot_process = start_launch('ros2 launch amr test_launch_sim.launch.py')
+        robot_process = start_launch('ros2 launch launch_amr demo_launch.launch.py')
         print("Robot launch started.")
     else:
         kill_process_tree(robot_process.pid)
@@ -76,14 +77,36 @@ def on_robot_click():
         print("Robot launch stopped.")
 
 def on_mic_click():
+    # global mic_process
+    # if mic_process is None or mic_process.poll() is not None:
+    #     python_venv = "/home/jetson/venvs/kokoro/bin/python"
+    #     script = "/home/jetson/agv/src/amr/voice_packages/test_voice.py"
+    #     mic_process = subprocess.Popen([python_venv, script])
+    #     print("Mic launch started.")
+    # else:
+    #     kill_process_tree(mic_process.pid)
+    #     mic_process = None
+    #     print("Mic launch stopped.")
     global mic_process
+    script = "/home/jetson/agv/src/amr/voice_packages/kokoro_launcher.py"
     if mic_process is None or mic_process.poll() is not None:
-        python_venv = "/home/jetson/venvs/kokoro/bin/python"
-        script = "/home/jetson/agv/src/amr/voice_packages/test_voice.py"
-        mic_process = subprocess.Popen([python_venv, script])
+        # Ensure launcher is executable and has a proper shebang
+        mic_process = subprocess.Popen(
+            ['python', script],
+            # stdout=subprocess.PIPE,
+            # stderr=subprocess.PIPE,
+            preexec_fn=os.setsid
+        )
         print("Mic launch started.")
     else:
-        kill_process_tree(mic_process.pid)
+        try:
+            # send SIGTERM to the whole group
+            pgid = os.getpgid(mic_process.pid)
+            os.killpg(pgid, signal.SIGTERM)
+            time.sleep(0.5)
+            os.killpg(pgid, signal.SIGKILL)
+        except Exception:
+            pass
         mic_process = None
         print("Mic launch stopped.")
 

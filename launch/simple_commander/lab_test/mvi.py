@@ -104,7 +104,7 @@ def main():
     else:
         print('Goal has an invalid return status!')
 
-    navigator.lifecycleShutdown()
+    # navigator.lifecycleShutdown()
     rclpy.shutdown()
 
     exit(0)
