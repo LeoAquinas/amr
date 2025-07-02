@@ -96,7 +96,7 @@ def generate_launch_description():
                 )]), launch_arguments={#'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_lib_official_copy.db',
                     #'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_official_nav_copy.db',
                     # 'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_mvi_2.db',
-                    'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_lab.db',
+                    'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_lab_nav.db',
                                        'use_sim_time': 'false',
                                        'rtabmap_viz': 'false',
                                        'localization': 'true',
@@ -139,19 +139,19 @@ def generate_launch_description():
                                         'min_cluster_size':'10',
 
 
-                                        'Grid/RangeMax':'3',
+                                        'Grid/RangeMax':'6',
                                         'Grid/NormalsSegmentation':'false', # Use passthrough filter to detect obstacles
                                         # Create occupancy grid from selected sensor: 0=laser scan, 1=depth image(s) or 2=both laser scan and depth image(s).
                                         ## CHANGE DEPENDING ON NEED
                                         'Grid/Sensor':'2', # Use both laser scan and camera for obstacle detection in global map
                                         'Grid/MaxGroundHeight':'0.02', # All points above 5 cm are obstacles
                                         'Grid/MaxObstacleHeight':'2.0',  # All points over 1 meter are ignored
-                                        'OriginStart': 'false',
+                                        'OriginStart': 'true',
                                         'initial_pose' : '-0.0 0.0 0.0 0.0 0.0 0.0',
                                         # CHECK MEM ON INIT
                                         # try reduce this
-                                        'STMSize': '10',
-                                        'InitWMWithAllNodes': 'false' 
+                                        'STMSize': '15',
+                                        'InitWMWithAllNodes': 'true' 
                                 }.items()
     )
 

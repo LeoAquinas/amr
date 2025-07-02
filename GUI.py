@@ -10,6 +10,8 @@ import time
 import logging
 import rclpy
 from rclpy import logging as ros_logging
+import re
+import tkinter as tk
 
 
 # === Redirect print output to Textbox ===
@@ -18,15 +20,25 @@ class TextRedirector(object):
         self.text_widget = text_widget
 
     def write(self, msg):
-        # ensure trailing newline
-        if not msg.endswith("\n"):
-            msg += "\n"
-        # enable, append, auto-scroll, then disable for read-only
-        self.text_widget.configure(state="normal")
-        self.text_widget.insert("end", msg)
-        self.text_widget.see("end")
-        self.text_widget.configure(state="disabled")
-        self.text_widget.update_idletasks()  # Force redraw
+        # Queue GUI-safe update
+        self.text_widget.after(0, self._write_to_box, msg)
+
+    def _write_to_box(self, msg):
+        try:
+            # Temporarily make it editable
+            self.text_widget.configure(state="normal")
+
+            # Insert and scroll
+            self.text_widget.insert("end", msg if msg.endswith('\n') else msg + '\n')
+            self.text_widget.see("end")
+
+            # Lock again
+            self.text_widget.configure(state="disabled")
+
+            # Force visual refresh
+            self.text_widget.update_idletasks()
+        except Exception as e:
+            print(f"Log update error: {e}")
 
     def flush(self):
         pass  # Needed for compatibility
@@ -123,8 +135,8 @@ def on_button4_click():
 def on_robot_click():
     global robot_process
     if robot_process is None or robot_process.poll() is not None:
-        robot_process = launch_and_stream([
-             "ros2", "launch", "launch_amr", "demo_launch.launch.py"
+        robot_process = start_launch([
+             "ros2 launch launch_amr demo_launch.launch.py"
          ])
         print("Robot launch started.")
     else:
