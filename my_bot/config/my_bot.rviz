@@ -27,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: MapCloud
+    SyncSource: ""
   - Class: nav2_rviz_plugins/Navigation 2
     Name: Navigation 2
   - Class: nav2_rviz_plugins/Navigation 2
@@ -560,16 +560,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 16.196592330932617
+      Distance: 30.069168090820312
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.0609451532363892
-        Y: -6.636116981506348
-        Z: 0.4586581289768219
+        X: 4.63546085357666
+        Y: -7.326161861419678
+        Z: 0.4643521010875702
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

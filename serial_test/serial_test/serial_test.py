@@ -37,7 +37,7 @@ class SerialSubscriber(Node):
                 self.get_logger().info(f'✅ Connected to Arduino on {port}')
                 self.arduino_connected = True
             except Exception as e:
-                self.get_logger().error(f'❌ Failed to open {port}: {e}')
+                # self.get_logger().error(f'❌ Failed to open {port}: {e}')
                 self.arduino_connected = False
 
         # --- 2) If connected, set up polling & reading ---
@@ -68,7 +68,8 @@ class SerialSubscriber(Node):
             _ = self.ser.readline()
             _ = self.ser.readline()
         except Exception as e:
-            self.get_logger().error(f'Serial poll error: {e}')
+            pass
+            # self.get_logger().error(f'Serial poll error: {e}')
 
     def read_serial(self):
         """Read any available lines and log/publish those starting with ULT:."""
@@ -80,7 +81,8 @@ class SerialSubscriber(Node):
                     self.get_logger().info(f'🔊 ULT message: {line}')
                     # you could publish this on a topic if desired
         except Exception as e:
-            self.get_logger().error(f'Serial read error: {e}')
+            pass
+            # self.get_logger().error(f'Serial read error: {e}')
 
     def cmd_vel_callback(self, msg: Twist):
         """Receive /cmd_vel and forward as VEL:x,z to Arduino."""
@@ -96,7 +98,8 @@ class SerialSubscriber(Node):
                     self.ser.write(self.latest_cmd)
                     # self.ser.flush()               # force it out the USB driver ASAP
                 except Exception as e:
-                    self.get_logger().error(f"Write error: {e}")
+                    pass
+                    # self.get_logger().error(f"Write error: {e}")
                 
 
 def main(args=None):

@@ -7,21 +7,63 @@ import threading
 import os
 import signal
 import time
+import logging
+import rclpy
+from rclpy import logging as ros_logging
+
 
 # === Redirect print output to Textbox ===
 class TextRedirector(object):
-    def __init__(self, textbox):
-        self.textbox = textbox
+    def __init__(self, text_widget):
+        self.text_widget = text_widget
 
-    def write(self, str):
-        # Insert text at the end and scroll to see it
-        self.textbox.configure(state='normal')
-        self.textbox.insert(ctk.END, str)
-        self.textbox.see(ctk.END)
-        self.textbox.configure(state='disabled')
+    def write(self, msg):
+        # ensure trailing newline
+        if not msg.endswith("\n"):
+            msg += "\n"
+        # enable, append, auto-scroll, then disable for read-only
+        self.text_widget.configure(state="normal")
+        self.text_widget.insert("end", msg)
+        self.text_widget.see("end")
+        self.text_widget.configure(state="disabled")
+        self.text_widget.update_idletasks()  # Force redraw
 
     def flush(self):
         pass  # Needed for compatibility
+
+    def emit(self, record):
+        log_message = self.format(record)
+        self.write(log_message)  # Use the `write` method to display log messages
+
+# Helper to launch a process and stream its output into the GUI
+def launch_and_stream(cmd_list):
+    """
+    Launches the given command list as a subprocess and
+    fires off two threads to read its stdout and stderr,
+    sending every line into our redirector.
+    Returns the Popen object.
+    """
+    proc = subprocess.Popen(
+        cmd_list,
+        stdin=subprocess.PIPE, 
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=1,
+        text=True,              # so we get strings, not bytes
+        preexec_fn=os.setsid    # so we can kill entire group later
+    )
+
+    def reader(pipe):
+        for line in iter(pipe.readline, ''):
+            # strip trailing newline because write() handles it
+            redirector.write(line.rstrip('\n'))
+        pipe.close()
+
+    # Start one thread for stdout and one for stderr
+    threading.Thread(target=reader, args=(proc.stdout,), daemon=True).start()
+    threading.Thread(target=reader, args=(proc.stderr,), daemon=True).start()
+
+    return proc# Helper to launch a process and stream its output into the GUI
 
 # === Globals to track processes and states ===
 robot_process = None
@@ -52,24 +94,38 @@ def run_simple_commander(script_name):
 
 def on_button1_click():
     print("Navigating to Robotics Lab!")
-    run_simple_commander("/home/jetson/agv/src/amr/launch/simple_commander/lab_test/robotics.py")
-
+    launch_and_stream([
+         "python",
+         "/home/jetson/agv/src/amr/launch/simple_commander/lab_test/robotics.py"
+     ])
+    
 def on_button2_click():
     print("Navigating to PLC Lab!")
-    run_simple_commander("/home/jetson/agv/src/amr/launch/simple_commander/lab_test/plc.py")
-
+    launch_and_stream([
+         "python",
+         "/home/jetson/agv/src/amr/launch/simple_commander/lab_test/plc.py"
+     ])
+    
 def on_button3_click():
     print("Navigating to Design Lab!")
-    run_simple_commander("/home/jetson/agv/src/amr/launch/simple_commander/lab_test/design.py")
-
+    launch_and_stream([
+         "python",
+         "/home/jetson/agv/src/amr/launch/simple_commander/lab_test/design.py"
+     ])
+    
 def on_button4_click():
     print("Navigating to Machine Vision Lab!")
-    run_simple_commander("/home/jetson/agv/src/amr/launch/simple_commander/lab_test/mvi.py")
-
+    launch_and_stream([
+         "python",
+         "/home/jetson/agv/src/amr/launch/simple_commander/lab_test/mvi.py"
+     ])
+    
 def on_robot_click():
     global robot_process
     if robot_process is None or robot_process.poll() is not None:
-        robot_process = start_launch('ros2 launch launch_amr demo_launch.launch.py')
+        robot_process = launch_and_stream([
+             "ros2", "launch", "launch_amr", "demo_launch.launch.py"
+         ])
         print("Robot launch started.")
     else:
         kill_process_tree(robot_process.pid)
@@ -91,12 +147,10 @@ def on_mic_click():
     script = "/home/jetson/agv/src/amr/voice_packages/kokoro_launcher.py"
     if mic_process is None or mic_process.poll() is not None:
         # Ensure launcher is executable and has a proper shebang
-        mic_process = subprocess.Popen(
-            ['python', script],
-            # stdout=subprocess.PIPE,
-            # stderr=subprocess.PIPE,
-            preexec_fn=os.setsid
-        )
+        mic_process = launch_and_stream([
+             "python",
+             "/home/jetson/agv/src/amr/voice_packages/kokoro_launcher.py"
+         ])
         print("Mic launch started.")
     else:
         try:
@@ -119,8 +173,8 @@ def on_motor_click():
         motor_processes = []
         print("Motor scripts stopped.")
     else:  # Start both motor scripts
-        p1 = subprocess.Popen(['python3', '/home/jetson/agv/src/amr/voice_packages/voice_subscriber.py'])
-        p2 = subprocess.Popen(['python3', '/home/jetson/agv/src/amr/serial_test/serial_test/serial_test.py'])
+        p1 = launch_and_stream(['python', '/home/jetson/agv/src/amr/voice_packages/voice_subscriber.py'])
+        p2 = launch_and_stream(['python', '/home/jetson/agv/src/amr/serial_test/serial_test/serial_test.py'])
         motor_processes = [p1, p2]
         print("Motor scripts started.")
 
@@ -165,6 +219,21 @@ def toggle_theme():
     ctk.set_appearance_mode(new_mode)
     icon_button.configure(image=moon_img if new_mode == "Light" else sun_img)
 
+def clear_log():
+    log_box.configure(state="normal")
+    log_box.delete("1.0", "end")
+    log_box.configure(state="disabled")
+
+def enter_command():
+    if mic_process and mic_process.stdin:
+        try:
+            mic_process.stdin.write("\n")
+            mic_process.stdin.flush()
+        except BrokenPipeError:
+            print("Mic process stdin closed.")
+    else:
+        print("Mic is not running.")
+    
 # === Title ===
 title_label = ctk.CTkLabel(app, text="Your Title Here", font=("Arial", 24))
 title_label.grid(row=0, column=0, columnspan=3, pady=(10, 5), sticky="n")
@@ -198,6 +267,35 @@ button3.grid(row=2, column=0, pady=10, padx=10, sticky="ew")
 
 button4 = ctk.CTkButton(left_frame, text="Machine Vision Lab", command=on_button4_click)
 button4.grid(row=3, column=0, pady=10, padx=10, sticky="ew")
+
+log_box = ctk.CTkTextbox(
+    left_frame,
+    width=200,
+    height=200,
+    fg_color="#111111",  # solid background
+    text_color="white"
+)
+log_box.grid(row=4, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
+# make it read-only by default:
+log_box.configure(state="disabled")
+
+# Frame below log box for small buttons
+log_button_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
+log_button_frame.grid(row=4, column=0, sticky="se", padx=10, pady=(0, 10))
+log_button_frame.grid_columnconfigure((0, 1), weight=1)
+
+# Clear Log button
+clear_log_button = ctk.CTkButton(log_button_frame, text="Clear Log", width=10, height=25, command=lambda: clear_log())
+clear_log_button.grid(row=0, column=0, padx=(0, 5))
+
+# Enter Command button
+enter_button = ctk.CTkButton(log_button_frame, text="Enter", width=10, height=25, command=lambda: enter_command())
+enter_button.grid(row=0, column=1, padx=(5, 0))
+
+# === Redirect terminal output to scrollable frame ===
+redirector = TextRedirector(log_box)
+sys.stdout = redirector
+sys.stderr = redirector
 
 # Bottom Buttons Frame
 bottom_button_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
