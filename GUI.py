@@ -135,9 +135,13 @@ def on_button4_click():
 def on_robot_click():
     global robot_process
     if robot_process is None or robot_process.poll() is not None:
-        robot_process = start_launch([
-             "ros2 launch launch_amr demo_launch.launch.py"
-         ])
+        robot_process = subprocess.Popen(
+            ["ros2", "launch", "launch_amr", "demo_launch.launch.py"],
+            stdout=subprocess.DEVNULL,      # drop all normal output
+            stderr=subprocess.DEVNULL,      # drop all error output too
+            preexec_fn=os.setsid,
+            text=True
+        )
         print("Robot launch started.")
     else:
         kill_process_tree(robot_process.pid)

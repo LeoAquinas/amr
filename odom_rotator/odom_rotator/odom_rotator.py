@@ -33,7 +33,7 @@ class OdomAxisSwap(Node):
         new_msg.twist = msg.twist
 
         self.pub.publish(new_msg)
-        self.get_logger().info(f'Position swapped: old x={x_old:.3f}, y={y_old:.3f} -> new x={x_new:.3f}, y={y_new:.3f}')
+        # self.get_logger().info(f'Position swapped: old x={x_old:.3f}, y={y_old:.3f} -> new x={x_new:.3f}, y={y_new:.3f}')
 
 def main(args=None):
     rclpy.init(args=args)

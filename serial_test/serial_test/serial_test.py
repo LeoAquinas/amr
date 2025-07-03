@@ -86,9 +86,9 @@ class SerialSubscriber(Node):
 
     def cmd_vel_callback(self, msg: Twist):
         """Receive /cmd_vel and forward as VEL:x,z to Arduino."""
-        self.get_logger().info(
-            f"Received /cmd_vel → Linear.x={msg.linear.x:.2f}, Angular.z={msg.angular.z:.2f}"
-        )
+        # self.get_logger().info(
+        #     f"Received /cmd_vel → Linear.x={msg.linear.x:.2f}, Angular.z={msg.angular.z:.2f}"
+        # )
         # build and write immediately
         self.latest_cmd = f"VEL:{msg.linear.x:.2f},{msg.angular.z:.2f}\n".encode('utf-8')
 

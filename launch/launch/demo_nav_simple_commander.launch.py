@@ -96,11 +96,12 @@ def generate_launch_description():
                 )]), launch_arguments={#'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_lib_official_copy.db',
                     #'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_official_nav_copy.db',
                     # 'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_mvi_2.db',
-                    'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_lab_nav.db',
+                    'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_lab.db',
+                                       'log_level': 'error',
                                        'use_sim_time': 'false',
-                                       'rtabmap_viz': 'false',
+                                       'rtabmap_viz': 'true',
                                        'localization': 'true',
-                                       'subscribe_rgbd': 'true',
+                                       'subscribe_rgbd': 'false',
                                        'rgbd_sync': 'true',
                                        'approx_rgbd_sync': 'true',
                                        'compressed': 'false',
@@ -139,7 +140,7 @@ def generate_launch_description():
                                         'min_cluster_size':'10',
 
 
-                                        'Grid/RangeMax':'6',
+                                        'Grid/RangeMax':'3',
                                         'Grid/NormalsSegmentation':'false', # Use passthrough filter to detect obstacles
                                         # Create occupancy grid from selected sensor: 0=laser scan, 1=depth image(s) or 2=both laser scan and depth image(s).
                                         ## CHANGE DEPENDING ON NEED
@@ -150,7 +151,7 @@ def generate_launch_description():
                                         'initial_pose' : '-0.0 0.0 0.0 0.0 0.0 0.0',
                                         # CHECK MEM ON INIT
                                         # try reduce this
-                                        'STMSize': '15',
+                                        'STMSize': '10',
                                         'InitWMWithAllNodes': 'true' 
                                 }.items()
     )
@@ -185,7 +186,7 @@ def generate_launch_description():
     
     # Nav2
     nav2_package_name = 'nav2_bringup'
-    nav2_params_file = '/home/jetson/agv/src/amr/launch/config/nav2_params_fixed.yaml'
+    nav2_params_file = '/home/jetson/agv/src/amr/launch/config/nav2_params_fixed_demo.yaml'
     nav2 = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(nav2_package_name),'launch','navigation_launch.py'
@@ -232,6 +233,6 @@ def generate_launch_description():
         odom_rotator,
         delayed_rtabmap,
         delayed_nav2,
-        delayed_amcl,
-        delayed_amcl_bringup
+        # delayed_amcl,
+        # delayed_amcl_bringup
     ])
