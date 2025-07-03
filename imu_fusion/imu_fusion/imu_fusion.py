@@ -1,59 +1,56 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import Vector3Stamped
-from builtin_interfaces.msg import Time
 from collections import deque
-import numpy as np
 
-class IMUMerger(Node):
+class ImuMerger(Node):
     def __init__(self):
         super().__init__('imu_merger')
 
-        self.accel_buffer = deque(maxlen=100)
-        self.gyro_buffer = deque(maxlen=100)
+        # Buffers to store incoming accel and gyro messages
+        self.accel_msgs = deque(maxlen=100)
+        self.gyro_msgs = deque(maxlen=100)
 
-        self.pub = self.create_publisher(Imu, '/camera/realsense2_camera/imu', 10)
+        self.accel_sub = self.create_subscription(Imu, '/t265/accel/sample', self.accel_callback, 10)
+        self.gyro_sub = self.create_subscription(Imu, '/t265/gyro/sample', self.gyro_callback, 10)
 
-        self.sub_accel = self.create_subscription(Vector3Stamped, '/t265/accel/sample', self.accel_callback, 10)
-        self.sub_gyro = self.create_subscription(Vector3Stamped, '/t265/gyro/sample', self.gyro_callback, 10)
+        self.imu_pub = self.create_publisher(Imu, '/camera/realsense2_camera/imu', 10)
 
-        self.get_logger().info("IMU Merger node running...")
+        self.get_logger().info("IMU merger initialized.")
 
     def accel_callback(self, msg):
-        self.accel_buffer.append(msg)
-        self.try_publish(msg.header.stamp)
+        self.accel_msgs.append(msg)
+        self.try_merge(msg.header.stamp)
 
     def gyro_callback(self, msg):
-        self.gyro_buffer.append(msg)
-        self.try_publish(msg.header.stamp)
+        self.gyro_msgs.append(msg)
+        self.try_merge(msg.header.stamp)
 
-    def try_publish(self, stamp: Time):
-        accel = self.find_closest(self.accel_buffer, stamp)
-        gyro = self.find_closest(self.gyro_buffer, stamp)
+    def try_merge(self, stamp):
+        accel_msg = self.find_closest(self.accel_msgs, stamp)
+        gyro_msg = self.find_closest(self.gyro_msgs, stamp)
 
-        if accel is None or gyro is None:
-            return  # Wait for matching timestamps
+        if accel_msg is None or gyro_msg is None:
+            return
 
-        imu = Imu()
-        imu.header.stamp = stamp
-        imu.header.frame_id = "imu_link"
+        # Merge IMU data
+        merged_imu = Imu()
+        merged_imu.header.stamp = stamp
+        merged_imu.header.frame_id = 'imu_link'
 
-        imu.linear_acceleration = accel.vector
-        imu.angular_velocity = gyro.vector
+        merged_imu.linear_acceleration = accel_msg.linear_acceleration
+        merged_imu.angular_velocity = gyro_msg.angular_velocity
 
-        # Leave orientation unset or zeroed
-        imu.orientation_covariance[0] = -1  # Indicates no orientation
+        merged_imu.orientation_covariance[0] = -1  # Means: orientation is not provided
 
-        self.pub.publish(imu)
+        self.imu_pub.publish(merged_imu)
 
     def find_closest(self, buffer, target_stamp):
-        # Find msg in buffer with closest timestamp
         if not buffer:
             return None
-        best = min(buffer, key=lambda msg: abs(self.to_sec(msg.header.stamp) - self.to_sec(target_stamp)))
-        if abs(self.to_sec(best.header.stamp) - self.to_sec(target_stamp)) < 0.01:  # within 10ms
-            return best
+        closest = min(buffer, key=lambda m: abs(self.to_sec(m.header.stamp) - self.to_sec(target_stamp)))
+        if abs(self.to_sec(closest.header.stamp) - self.to_sec(target_stamp)) < 0.01:  # 10ms threshold
+            return closest
         return None
 
     def to_sec(self, stamp):
@@ -61,7 +58,7 @@ class IMUMerger(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = IMUMerger()
+    node = ImuMerger()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
