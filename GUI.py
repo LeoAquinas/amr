@@ -106,6 +106,7 @@ def run_simple_commander(script_name):
 
 def on_button1_click():
     print("Navigating to Robotics Lab!")
+    print(time.time())
     launch_and_stream([
          "python",
          "/home/jetson/agv/src/amr/launch/simple_commander/lab_test/robotics.py"
@@ -113,6 +114,7 @@ def on_button1_click():
     
 def on_button2_click():
     print("Navigating to PLC Lab!")
+    print(time.time())
     launch_and_stream([
          "python",
          "/home/jetson/agv/src/amr/launch/simple_commander/lab_test/plc.py"
@@ -120,6 +122,7 @@ def on_button2_click():
     
 def on_button3_click():
     print("Navigating to Design Lab!")
+    print(time.time())
     launch_and_stream([
          "python",
          "/home/jetson/agv/src/amr/launch/simple_commander/lab_test/design.py"
@@ -127,6 +130,7 @@ def on_button3_click():
     
 def on_button4_click():
     print("Navigating to Machine Vision Lab!")
+    print(time.time())
     launch_and_stream([
          "python",
          "/home/jetson/agv/src/amr/launch/simple_commander/lab_test/mvi.py"

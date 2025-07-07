@@ -187,7 +187,7 @@ local_costmap:
         inscribed_radius: 0.1
         avoidance_radius: 0.7
         subscription_topic: /camera/cropped_cloud
-        decay_time: 1.0
+        decay_time: 10.0
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         inflation_radius: 3.0
@@ -264,7 +264,7 @@ global_costmap:
         inscribed_radius: 0.05
         avoidance_radius: 0.8
         subscription_topic: /camera/cropped_cloud
-        decay_time: 0.3
+        decay_time: 10.0
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True

@@ -17,6 +17,7 @@ from geometry_msgs.msg import PoseStamped
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 import rclpy
 from rclpy.duration import Duration
+import time
 
 """
 Basic navigation demo to go to pose.
@@ -46,6 +47,7 @@ def main():
     # Wait for navigation to fully activate, since autostarting nav2
     navigator.waitUntilNav2Active()
     navigator.waitUntilNav2Active(localizer='')
+    print(time.time())
 
     # If desired, you can change or load the map as well
     # navigator.changeMap('/path/to/map.yaml')

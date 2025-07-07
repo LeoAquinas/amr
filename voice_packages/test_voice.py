@@ -61,7 +61,7 @@ right_command_list = ['right']
 # To stop
 stop_command_list = ['stop']
 
-nav_list = ['mvi lab', 'machine lab', 'vision lab', 'plc lab', 'robotics lab', 'robotic lab', 'design lab']
+nav_list = ['mvi lab', 'machine lab', 'vision lab', 'program lab', 'robotics lab', 'robotic lab', 'design lab', 'machine vision lab']
 
 # TODO:
 # Modify to suit speech input rather than keyboard
@@ -179,9 +179,9 @@ def speech_to_text():
             sample_rate = audio.sample_rate
             reduced_audio = nr.reduce_noise(y=np.frombuffer(audio_data, dtype=np.int16), sr=sample_rate)
 
-            #global speech_end_time
-            #speech_end_time = time.time()
-            #print(speech_end_time)
+            global speech_end_time
+            speech_end_time = time.time()
+            print(speech_end_time)
             
             # Save audio to temporary file
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as fp:
@@ -368,7 +368,7 @@ if __name__ == "__main__":
                         print("Navigation script launched.", flush=True)
                     except Exception as e:
                         print(f"Failed to launch navigation script: {e}", flush=True)
-                elif points=='plc lab':
+                elif points=='program lab':
                     try:
                         # Launch the navigation script
                         subprocess.Popen(["python3", "/home/jetson/agv/src/amr/launch/simple_commander/lab_test/plc.py"])

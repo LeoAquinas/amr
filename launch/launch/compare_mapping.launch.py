@@ -58,6 +58,27 @@ def generate_launch_description():
                             "examples", "angular_filter_example.yaml",
                         ])]
                 )
+    
+    transform_package_name = 'launch_amr'
+    transform = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory(transform_package_name),'launch','comparison_static_transforms.launch.py'
+                )])
+    )
+
+    camera_info = Node(
+            package='camera_info',
+            executable='camera_info',
+            name='camera_info',
+            output='screen'
+        )
+
+    imu_fusion = Node(
+            package='imu_fusion',
+            executable='imu_fusion',
+            name='imu_fusion',
+            output='screen'
+        )
 
     #Rf2o
     rf2o = Node(
@@ -98,13 +119,17 @@ def generate_launch_description():
                     # 'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_mvi_2.db',
                     'database_path': '/media/jetson/6252efc3-834a-466b-90d3-0028ea2e8da5/home/orin_nano/bag/compare_cafe1.db',
                                        'log_level': 'error',
-                                       'use_sim_time': 'false',
+                                       'rtabmap_args': '--delete_db_on_start',
+                                       'use_sim_time': 'true',
                                        'rtabmap_viz': 'false',
                                        'localization': 'false',
                                        'subscribe_rgbd': 'false',
                                        'rgbd_sync': 'true',
                                        'approx_rgbd_sync': 'true',
                                        'compressed': 'false',
+                                       'approx_sync_max_interval': '0.1',
+                                       'topic_queue_size': '2000',
+                                       'queue_size':'2000',
 
                                        'subscribe_odom_info': 'true',
                                        'visual_odometry': 'true',
@@ -131,8 +156,8 @@ def generate_launch_description():
                                        'stereo_namespace': '',
                                        'left_image_topic': '/t265/fisheye1/image_raw',
                                        'right_image_topic': '/t265/fisheye2/image_raw',
-                                       'left_camera_info_topic': '/t265/fisheye1/camera_info',
-                                       'right_camera_info_topic': '/t265/fisheye2/camera_info',
+                                       'left_camera_info_topic': '/t265/fisheye1/camera_info_sync',
+                                       'right_camera_info_topic': '/t265/fisheye2/camera_info_sync',
 
                                         # Custom params
                                         'grid_raytracing':'true', # Fill empty space
@@ -181,17 +206,17 @@ def generate_launch_description():
             executable='ukf_node',
             name='ukf_filter_node',
             output='screen',
-            parameters=[yaml_file_path, {'use_sim_time': False}],
+            parameters=[yaml_file_path, {'use_sim_time': True}],
            )
     
     delayed_rtabmap = TimerAction(period=6.0, actions=[rtabmap])
 
     # Launch them all!
     return LaunchDescription([
-        lidar,
-        lidar_filter,
+        transform,
+        imu_fusion,
+        camera_info,
         rf2o,
-        realsense,
         ukf,
         quaternion,
         odom_rotator,
