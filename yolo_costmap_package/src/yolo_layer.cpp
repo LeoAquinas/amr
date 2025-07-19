@@ -234,6 +234,7 @@ void YoloLayer::updateCosts(
     unsigned int mx = xy.first, my = xy.second;
     master_array[ master.getIndex(mx, my) ] = FREE_SPACE;
   }
+  // Maybe remove this to keep costmap integrity
   last_inflated_cells_.clear();
 
   for (const auto& det : current_detections) {
