@@ -20,6 +20,12 @@ Moved lidar filter
 Moved camera startup
 Moved rf2o
 Moved rtabmap
+
+rtabmap-databaseViewer /home/jetson/agv/src/amr/launch/map/rtabmap_lib.db
+ros2 run nav2_map_server map_server --ros-args -p yaml_filename:=/home/jetson/Desktop/rtabmap_lib_official_copy.yaml
+ros2 lifecycle set /map_server configure
+ ros2 lifecycle set /map_server activate
+
 '''
 
 #TODO:
@@ -87,10 +93,15 @@ def generate_launch_description():
     rtabmap = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(rtab_package_name),'launch','rtabmap.launch.py'
-                )]), launch_arguments={'use_sim_time': 'false',
-                                       'rtabmap_viz': 'false',
+                )]), launch_arguments={#'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_lib_official_copy.db',
+                    #'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_official_nav_copy.db',
+                    # 'database_path': '/home/jetson/agv/src/amr/launch/map/off_cp/rtabmap_mvi_2.db',
+                    'database_path': '/home/jetson/agv/src/amr/launch/map/rtabmap_lab.db',
+                                       'log_level': 'error',
+                                       'use_sim_time': 'false',
+                                       'rtabmap_viz': 'true',
                                        'localization': 'true',
-                                       'subscribe_rgbd': 'true',
+                                       'subscribe_rgbd': 'false',
                                        'rgbd_sync': 'true',
                                        'approx_rgbd_sync': 'true',
                                        'compressed': 'false',
@@ -135,8 +146,14 @@ def generate_launch_description():
                                         ## CHANGE DEPENDING ON NEED
                                         'Grid/Sensor':'2', # Use both laser scan and camera for obstacle detection in global map
                                         'Grid/MaxGroundHeight':'0.02', # All points above 5 cm are obstacles
-                                        'Grid/MaxObstacleHeight':'1.0',  # All points over 1 meter are ignored
-                                       }.items()
+                                        'Grid/MaxObstacleHeight':'2.0',  # All points over 1 meter are ignored
+                                        'OriginStart': 'true',
+                                        'initial_pose' : '-0.0 0.0 0.0 0.0 0.0 0.0',
+                                        # CHECK MEM ON INIT
+                                        # try reduce this
+                                        'STMSize': '10',
+                                        'InitWMWithAllNodes': 'true' 
+                                }.items()
     )
 
     # Compute quaternion of the IMU
@@ -148,6 +165,13 @@ def generate_launch_description():
                          'world_frame':'enu', 
                          'publish_tf':False}],
             remappings=[('imu/data_raw', '/camera/realsense2_camera/imu')]
+            )
+    
+    # Rotate RTABMap odom for evo analysis
+    odom_rotator = Node(
+            package='odom_rotator',
+            executable='odom_rotator',
+            output='screen'
             )
     
     # UKF
@@ -162,7 +186,8 @@ def generate_launch_description():
     
     # Nav2
     nav2_package_name = 'nav2_bringup'
-    nav2_params_file = '/home/jetson/agv/src/launch/config/nav2_params.yaml'
+    # nav2_params_file = '/home/jetson/agv/src/amr/launch/config/nav2_params_fixed_demo.yaml'
+    nav2_params_file = '/home/jetson/agv/src/amr/launch/config/nav2_yolo_params_lab.yaml'
     nav2 = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(nav2_package_name),'launch','navigation_launch.py'
@@ -170,7 +195,25 @@ def generate_launch_description():
                                        'params_file': nav2_params_file,
                                         }.items()
     )
-    
+
+    # Launch Yolo
+    yolo_package_name = 'yolo_launcher'
+    yolo_launcher = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory(yolo_package_name),'launch','yolo_launcher.launch.py'
+                )])
+    )
+
+    # Pointcloud cropper
+    crop_yaml_file_path = "/home/jetson/agv/src/amr/YOLO/pointcloud_crop/config/filter_config.yaml"
+    pointcloud_crop = Node(
+            package='pointcloud_crop',
+            executable='pointcloud_crop',
+            name='pointcloud_crop',
+            output='screen',
+            arguments=['--ros-args', '--param', f'config_path:={crop_yaml_file_path}']
+           )
+
     ''' TODO:
     # Add delays for sequential execution
     delayed_realsense = TimerAction(period=2.0, actions=[realsense])
@@ -179,8 +222,10 @@ def generate_launch_description():
     delayed_rtabmap = TimerAction(period=14.0, actions=[rtabmap])
 
     '''
-    delayed_rtabmap = TimerAction(period=7.0, actions=[rtabmap])
-    delayed_nav2 = TimerAction(period=10.0, actions=[nav2])
+    delayed_rtabmap = TimerAction(period=6.0, actions=[rtabmap])
+    delayed_nav2 = TimerAction(period=9.0, actions=[nav2])
+    delayed_yolo_launcher = TimerAction(period=13.0, actions=[yolo_launcher])
+    delayed_pointcloud_crop = TimerAction(period=15.0, actions=[pointcloud_crop])
 
     # Launch them all!
     return LaunchDescription([
@@ -190,12 +235,9 @@ def generate_launch_description():
         realsense,
         ukf,
         quaternion,
-        # rtabmap,
-
-
-        # delayed_realsense,
-        # delayed_orbslam3,
-        # delayed_ukf,
+        odom_rotator,
         delayed_rtabmap,
-        delayed_nav2
+        delayed_nav2,
+        delayed_yolo_launcher,
+        delayed_pointcloud_crop
     ])

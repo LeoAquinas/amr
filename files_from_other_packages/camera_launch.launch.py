@@ -29,10 +29,13 @@ def generate_launch_description():
                     'enable_accel' : True, 
                     'enable_color' : True,
                     'unite_imu_method': 2,
+                    'publish_tf': True,
 
                     # 'enable_depth' : True,
-                    # 'align_depth' : True,
+                    # 'align_depth.enable' : True,
                     'enable_sync' : True,
+                    'decimation_filter.enable': True,
+                    'decimation_filter.filter_magnitude': 4,
 
                     'rgb_camera.power_line_frequency' : 1,
 

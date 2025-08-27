@@ -140,7 +140,7 @@ def on_robot_click():
     global robot_process
     if robot_process is None or robot_process.poll() is not None:
         robot_process = subprocess.Popen(
-            ["ros2", "launch", "launch_amr", "demo_launch.launch.py"],
+            ["ros2", "launch", "launch_amr", "demo_launch_without_voice.launch.py"],
             stdout=subprocess.DEVNULL,      # drop all normal output
             stderr=subprocess.DEVNULL,      # drop all error output too
             preexec_fn=os.setsid,
@@ -153,36 +153,7 @@ def on_robot_click():
         print("Robot launch stopped.")
 
 def on_mic_click():
-    # global mic_process
-    # if mic_process is None or mic_process.poll() is not None:
-    #     python_venv = "/home/jetson/venvs/kokoro/bin/python"
-    #     script = "/home/jetson/agv/src/amr/voice_packages/test_voice.py"
-    #     mic_process = subprocess.Popen([python_venv, script])
-    #     print("Mic launch started.")
-    # else:
-    #     kill_process_tree(mic_process.pid)
-    #     mic_process = None
-    #     print("Mic launch stopped.")
-    global mic_process
-    script = "/home/jetson/agv/src/amr/voice_packages/kokoro_launcher.py"
-    if mic_process is None or mic_process.poll() is not None:
-        # Ensure launcher is executable and has a proper shebang
-        mic_process = launch_and_stream([
-             "python",
-             "/home/jetson/agv/src/amr/voice_packages/kokoro_launcher.py"
-         ])
-        print("Mic launch started.")
-    else:
-        try:
-            # send SIGTERM to the whole group
-            pgid = os.getpgid(mic_process.pid)
-            os.killpg(pgid, signal.SIGTERM)
-            time.sleep(0.5)
-            os.killpg(pgid, signal.SIGKILL)
-        except Exception:
-            pass
-        mic_process = None
-        print("Mic launch stopped.")
+    print("Mic Disabled.")
 
 def on_motor_click():
     global motor_processes
