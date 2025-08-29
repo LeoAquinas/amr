@@ -91,7 +91,7 @@ int motorSpeedLeft = 0;
 int motorSpeedRight = 0;
 
 unsigned long last_cmd_vel_time = 0;
-const unsigned long CMD_VEL_TIMEOUT = 200;  // ms
+const unsigned long CMD_VEL_TIMEOUT = 500;  // ms
 
 
 void setup() {
@@ -174,8 +174,8 @@ void motorRunNormal() {
     else if(ch4 < 1000)
     {
       if (!obstacleInDirection("left")) {
-        leftMotor.setSpeed(-motorSpeedLeft);  
-        rightMotor.setSpeed(motorSpeedRight);
+        leftMotor.setSpeed(-motorSpeedLeft*0.6);  
+        rightMotor.setSpeed(motorSpeedRight*0.6);
       } else {
         leftMotor.setSpeed(0);
         rightMotor.setSpeed(0);
@@ -186,8 +186,8 @@ void motorRunNormal() {
     else if(ch4 > 1600)
     {
       if (!obstacleInDirection("right")) {
-        leftMotor.setSpeed(motorSpeedLeft);  
-        rightMotor.setSpeed(-motorSpeedRight);
+        leftMotor.setSpeed(motorSpeedLeft*0.6);  
+        rightMotor.setSpeed(-motorSpeedRight*0.6);
       } else {
         leftMotor.setSpeed(0);
         rightMotor.setSpeed(0);
@@ -331,8 +331,8 @@ void loop() {
 
     Serial.println(left_speed);
     Serial.println(right_speed);
-    int left_pwm = (int)(constrain(left_speed / MAX_LINEAR_VEL, -1.0, 1.0) * 50);
-    int right_pwm = (int)(constrain(right_speed / MAX_LINEAR_VEL, -1.0, 1.0) * 50);
+    int left_pwm = (int)(constrain(left_speed / MAX_LINEAR_VEL, -1.0, 1.0) * 30);
+    int right_pwm = (int)(constrain(right_speed / MAX_LINEAR_VEL, -1.0, 1.0) * 30);
     Serial.println(left_pwm);
     Serial.println(right_pwm);
 
