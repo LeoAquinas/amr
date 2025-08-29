@@ -4,8 +4,37 @@ This is a repository for a final year project pertaining to the HRI system of an
   2. Voice/Speech Control
   3. Teleoperation Control
   4. Touchpad Inputs
+  5. Custom YOLO Nav2 package for obstacle avoidance enhancement
+**To run**:
+- Jetson GUI disabled by default due to usage of Nomachine. To enable:
+    - `sudo systemctl enable gdm3 --now`. This would enable the GUI on the Jetson such that can navigate like indows and linux. Otherwise everything would be on terminal
+    - If want to connect using Nomachine instead, need to install Nomachine on own device for connection. If trying to connect to Jetson using this method, need to use mobile data as APU WIFI blocks connections.
+- There are 2 GUI available in the Jetson.
+    - GUI.py is with the availability of voice commands, but custom yolo package is disabled
+    - GUI2.py has custom yolopackage enabled, but voice commands disabled
+  **Take note:**
+    a. When initiating the AMR, make sure all motors are off before running the motor serial scripts as when serial signals are etablished with Arduino, the motors would backdrive
+    b. When starting the AMR motors, make sure to block the back as sometimes when the jumper wires of the Arduino are loose or there is noise, the motors would backdrive. For this, please follow the steps of 1. Turn on the Arduino. 2. Turn on the controller. 3. Block the back. 4. Turn on the motors. **If backdrive problem persists for long time, wiggle the wires a bit**
 
-## Packages
+## Overall Packages in this Github Repo
+| Packages | Usage |
+| --- | --- |
+|`YOLO`|For YOLO detections and publication in ROS2 and for cropping of pointclouds for custom plugin|
+|`launch`|Main launch files for AMR functionalities|
+|`my_bot`|Package containing robot bringup and URDFs|
+|`serial_test`|Package for establishing serial communication between Jetson and Arduino. Used to convert /cmd_vel topics into serial commands. **Before running this, make sure motors are off**|
+|`voice_packages`|Scripts for voice communication for the AMR|
+|`yolo_costmap_package`|Custom Nav2 plugin package that updates costmaps using YOLO detections for enhanced obstacle avoidance|
+|`GUI.py`|GUI for AMR operations. Able to use voice functionality but custom plugin is disabled due to hardware constraints|
+|`GUI2.py`|GUI for AAMR operations. Custom plugin enabled but voice functionality disabled due to hardware constraints|
+|`arduino_control`|Arduino files for movement|
+|`camera_info`|Extra evaluation script for OpenLORIS dataset, can ignore for functionality|
+|`imu_fusion`|Extra evaluation script for OpenLORIS dataset, can ignore for functionality|
+|`odom_rotator`|Extra evaluation script for OpenLORIS dataset, can ignore for functionality|
+|`voice_control`|Developmental scripts for voice control functionality, can use as reference but useless for funtionality|
+|`files_from_other_packages`|Files for other external packages in case the packages are accidentally deleted. Already setup in Jetson so can ignore, but if need to reset those packages, can use back the configs in these files|
+
+## Overall Packages in Jetson
 | Packages | Usage |
 |---|---|
 |`amr`|Main Robot Package|
@@ -238,13 +267,6 @@ To use the IntelRealSense camera in ROS2, 2 steps are required.
     2. ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True  # Or false depending on situation
     3. Param file should be the one within the humble directory within tuetlebot3_navigation launch
 
-### Yolo
-**1. Pointcloud Filtering**
-  Makes use of [cropbox filter]([https://github.com/PointCloudLibrary/pcl/blob/master/filters/src/crop_box.cpp](https://github.com/ros-perception/perception_pcl/blob/ros2/pcl_ros/src/pcl_ros/filters/crop_box.cpp))
-  **Filter come from perception_pcl library but can use as is as it comes with ROS2**
-  **Used as a called method in pointcloud filter implementation file**
-
-
 
 ### Voice Control
 **Due to GPU usage for kokoro onnx, need to use onnxruntime-gpu**
@@ -276,8 +298,16 @@ To make use of gpu for kokoro, refer to [this](https://www.reddit.com/r/LocalLLa
   [kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx)
 
 
+#### Usage
+1. Run [this](https://github.com/LeoAquinas/amr/blob/main/voice_packages/kokoro_launcher.py) file to start venv launch to initiate voice processes
+2. [This](https://github.com/LeoAquinas/amr/blob/main/voice_packages/test_voice.py) file is source code for voice, but cannot run stright due to dependency issues in environment
+3. Run [this](https://github.com/LeoAquinas/amr/blob/main/voice_packages/voice_subscriber.py) to subscribe to voice section and publish teleop commands to ROS2 environment
+  
 
-### YOLO
+## Custom YOLO Plugin for Nav2
+**Consist of 3 independant parts that need to be run simultaneously for use**
+  
+### 1. [YOLO](https://github.com/LeoAquinas/amr/tree/main/YOLO/yolo_launcher)
 Dependencies:
 **Numpy Error**
 **kokoro-onnx requires numpy version == 2.0.2**
@@ -320,6 +350,16 @@ sudo apt install python3-libnvinfer*
 pip install onnx
 ```
 
+### 2. [Pointcloud Filtering](https://github.com/LeoAquinas/amr/tree/main/YOLO/pointcloud_crop)
+  Makes use of [cropbox filter]([https://github.com/PointCloudLibrary/pcl/blob/master/filters/src/crop_box.cpp](https://github.com/ros-perception/perception_pcl/blob/ros2/pcl_ros/src/pcl_ros/filters/crop_box.cpp))
+  **Filter come from perception_pcl library but can use as is as it comes with ROS2**
+  **Used as a called method in pointcloud filter implementation file**
+  Depending on resolution of image used from camera, need to change the width and height in [this](https://github.com/LeoAquinas/amr/blob/babe59a62d190519c769a21c45283a62f8109727/YOLO/pointcloud_crop/src/pointcloud_crop.cpp#L73) file
+
+### 3. [Costmap Plugin](https://github.com/LeoAquinas/amr/tree/main/yolo_costmap_package)
+  C++ source code for Nav2 Plugin
+  **Independant source code that is loaded into Nav2 through Nav2 param file**
+  **Used through the inclusion of the plugin [here](https://github.com/LeoAquinas/amr/blob/babe59a62d190519c769a21c45283a62f8109727/launch/config/nav2_yolo_params.yaml#L184) and [here](https://github.com/LeoAquinas/amr/blob/babe59a62d190519c769a21c45283a62f8109727/launch/config/nav2_yolo_params.yaml#L261) for global and local costmaps respectively**
 
 
 ### Arduino
@@ -340,7 +380,12 @@ If port access is denied, try [this](https://support.arduino.cc/hc/en-us/article
 **During usage of Jetson port, usb might not be able to be detected. To enable usb detection by Jetson, need to install and build kernel driver for USB**
 ->[Kernel Source](https://developer.nvidia.com/embedded/jetson-linux-r3643)
 
-###
+#### Final Arduino code for movement of AMR
+[This](https://github.com/LeoAquinas/amr/blob/main/arduino_control/updated_arduino_code.ino) is the final working Arduino code for the AMR through serial commands
+
+
+### [Serial Test](https://github.com/LeoAquinas/amr/blob/main/serial_test/serial_test/serial_test.py)
+**Conversion script to change /cmd_vel topics into serial commands for Arduino to start movement**
 
 
 
@@ -359,6 +404,11 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --executo
 
 ## Commands
 ### Standalone Executions
+Launch robot bringup to start robot
+```
+ros2 launch amr test_launch_sim.launch.py 
+```
+
 Start LiDAR
 ```
 ros2 launch sllidar_ros2 view_sllidar_a1_launch.py
@@ -374,14 +424,29 @@ Start rf2o
 ros2 launch rf2o_laser_odometry rf2o_laser_odometry.launch.py 
 ```
 
+Start conversion of /cmd_vel topics into serial movement for Arduino
+```
+ros2 run serial_test serial_test
+```
+
+Start yolo detections and publish into ROS2 environment
+```
+ros2 launch yolo_launcher yolo_launcher
+```
+
 Start pointcloud cropping based on yolo detections
 ```
 ros2 run pointcloud_crop pointcloud_crop
 ```
 
-Start yolo
+Start voice communication
 ```
-ros2 launch yolo_launcher yolo_launcher
+python {path to file}/kokoro_launcher.py
+```
+
+Convert voice teleoperation commands to /cmd_vel topics
+```
+python {path to file}/voice_subscriber.py
 ```
 
 ### Overall Execution
@@ -405,7 +470,7 @@ Mapping process
 ros2 launch launch_amr map.launch.py 
 ```
 
-Navigation process
+Independant navigation process for testing without custom plugin
 ```
 ros2 launch launch_amr nav.launch.py 
 ```
@@ -415,10 +480,41 @@ Navigation process with custom plugin
 ros2 launch launch_amr nav_yolo.launch.py 
 ```
 
+[Launch bringup and navigation without plugin](https://github.com/LeoAquinas/amr/blob/7a5d45ad16c2ddb3c9360e3bd72d557752553d93/launch/launch/demo_launch.launch.py)
+```
+ros2 launch launch_amr launch/launch/demo_launch.launch.py
+```
+
+[Launch bringup and navigation with plugin](https://github.com/LeoAquinas/amr/blob/7a5d45ad16c2ddb3c9360e3bd72d557752553d93/launch/launch/demo_launch_without_voice.launch.py)
+```
+launch/launch/demo_launch_without_voice.launch.py
+```
+
+
+
+## Extra Scripts
+**The purpose of these scripts were for evaluation of FYP data and has no direct effect on the functions of the AMR**
+1. Bag recording and simple commander initiation [here](launch/launch/start_nav.launch.py)
+2. To get SLAM results from OpenLORIS dataset for comparison of SLAM methodology with other existing research [here](https://github.com/LeoAquinas/amr/blob/7a5d45ad16c2ddb3c9360e3bd72d557752553d93/launch/launch/compare_mapping.launch.py)
+3. Need to run [this](https://github.com/LeoAquinas/amr/blob/7a5d45ad16c2ddb3c9360e3bd72d557752553d93/launch/launch/comparison_static_transforms.launch.py) to provide transform for OpenLORIS dataset before SLAM so that transform can be obtained
+4. [This](https://github.com/LeoAquinas/amr/tree/7a5d45ad16c2ddb3c9360e3bd72d557752553d93/odom_rotator) is to rotate transfrom of RTABMAP such that the transfrom is in correct frame during movement comparison
+5. [This](https://github.com/LeoAquinas/amr/tree/7a5d45ad16c2ddb3c9360e3bd72d557752553d93/imu_fusion) is to merge IMU data from OpenLORIS dataset for SLAM algorithms
+6. [This](https://github.com/LeoAquinas/amr/tree/7a5d45ad16c2ddb3c9360e3bd72d557752553d93/camera_info) is to get camera info from OpenLORIS dataset for evaluation
+7. [This](https://github.com/LeoAquinas/amr/tree/7a5d45ad16c2ddb3c9360e3bd72d557752553d93/voice_control) are all scripts used for development of voice scripts, can ignore but is good for reference
+
 
 ### Deprecated
-
 Start ORBSLAM3
 ```
 ros2 run orbslam3 stereo /home/jetson/agv/src/vslam/orbslam3_ros2/vocabulary/ORBvoc.txt /home/jetson/agv/src/vslam/orbslam3_ros2/config/stereo/RealSense_D435i.yaml false
+```
+
+Nav2 without plugin with AMCL
+```
+ros2 launch launch_amr launch/launch/nav_simple_commander.launch.py
+```
+
+Nav2 with plugin with AMCL
+```
+ros2 launch launch_amr launch/launch/nav_yolo.launch.py
 ```
