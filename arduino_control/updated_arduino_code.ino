@@ -1,43 +1,3 @@
-//#include <NewPing.h>
-//
-//#define TRIGGER_PIN  10
-//#define ECHO_PIN     9
-//#define MAX_DISTANCE 10 // Maximum distance we want to measure (in centimeters).
-//
-//
-//NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
-//
-//void setup() {
-//  Serial.begin(115200);
-//}
-//
-//void loop() {
-//  delay(1000);                    // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
-//
-//  int distance = sonar.ping_cm(); // Send ping, get distance in cm and print result (0 = outside set distance range)
-//
-//  Serial.print("Distance: ");
-//  Serial.print(distance);
-//  Serial.println("cm");
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-// TODO:
-// Add deadzone
-// maybe use pulseInWait
-
-
-// Arduino reads pin 13 and responds over Serial
 #include "CytronMotorDriver.h"
 #include <NewPing.h>
 
@@ -139,11 +99,6 @@ void motorRunStart() {
 }
 
 void motorRunNormal() {
-//  // Get pulses from FS i6X receiver
-//  ch2 = pulseIn(49,HIGH);
-//  ch3 = pulseIn(51,HIGH);
-//  ch4 = pulseIn(53,HIGH);
-
   if(ch3 < 1600)
   {
     leftMotor.setSpeed(0);
@@ -219,64 +174,6 @@ bool obstacleInDirection(String dir) {
 }
 
 void loop() {
-  // // Get pulses from FS i6X receiver
-  // ch2 = pulseIn(49,HIGH);
-  // ch3 = pulseIn(51,HIGH);
-  // ch4 = pulseIn(53,HIGH);
-
-  // Get sonar ping dist in cm
-  // int distance = sonar1.ping_cm(); // Send ping, get distance in cm and print result (0 = outside set distance range)
-
-  // Serial.print("Distance: ");
-  // Serial.print(distance);
-  // Serial.println("cm");
-
-  // int distance2 = sonar2.ping_cm();
-  // if ((distance2 > 0) && (distance2 < 4)) {
-  //       leftMotor.setSpeed(0);  
-  //       rightMotor.setSpeed(0);
-  //       digitalWrite(test, HIGH); 
-  //     }
-
-  // if(ch3 < (1430-deadzone))
-  // {
-  //   leftMotor.setSpeed(0);
-  //   rightMotor.setSpeed(0);
-  // }
-  // else{
-  //   if(ch2 > (1530+deadzone))
-  //   {  
-  //     leftMotor.setSpeed(45);  
-  //     rightMotor.setSpeed(45);
-  //   }
-
-  //   // Backward
-  //   else if(ch2 < (1430-deadzone))
-  //   {  
-  //     leftMotor.setSpeed(-45);  
-  //     rightMotor.setSpeed(-45);
-  //   }
-
-  //   // Left
-  //   else if(ch4 < (1430-deadzone))
-  //   {  
-  //     leftMotor.setSpeed(-45);  
-  //     rightMotor.setSpeed(45);
-  //   }
-
-  //   // Right
-  //   else if(ch4 > (1530+deadzone))
-  //   {  
-  //     leftMotor.setSpeed(45);  
-  //     rightMotor.setSpeed(-45);
-  //   }
-  //   else
-  //   {
-  //     leftMotor.setSpeed(0);
-  //     rightMotor.setSpeed(0);
-  //   }
-  // }
-
   // Read pulses once with timeout to avoid blocking forever
   ch2 = pulseIn(49, HIGH, 50000);  // 25ms timeout
   ch3 = pulseIn(51, HIGH, 50000);
@@ -336,14 +233,6 @@ void loop() {
     Serial.println(left_pwm);
     Serial.println(right_pwm);
 
-    // Get sonar ping dist in cm
-    // int distance1 = sonar1.ping_cm(); // Send ping, get distance in cm and print result (0 = outside set distance range)
-    // int distance2 = sonar2.ping_cm();
-    // int distance3 = sonar3.ping_cm();
-
-    //   Serial.print("ULT:");
-    //   Serial.println(distance2);
-
     // Normal motor movement
     // Check ultrasonic sensors based on intended direction
     bool stop = false;
@@ -365,59 +254,6 @@ void loop() {
       rightMotor.setSpeed(right_pwm); 
       digitalWrite(test, LOW);
     }
- 
-
-    // Sanity check using us
-
-    // if ((left_pwm < 0) && (right_pwm < 0)) {   //check backside
-      // Get left us reading
-      // int distance1 = sonar1.ping_cm();
-      // Serial.print("ULT:");
-      // Serial.println(distance1);
-      
-      // if ((distance1 > 0) && (distance1 < stopDist1)) {
-      //   leftMotor.setSpeed(0);  
-      //   rightMotor.setSpeed(0);
-      //   digitalWrite(test, HIGH); 
-      // }
-    // }
-
-    // if ((left_pwm < 0) && (right_pwm > 0)) {   //check left
-      // Get left us reading
-      // int distance2 = sonar2.ping_cm();
-      // Serial.print("ULT:");
-      // Serial.println(distance2);
-
-      
-      // if ((distance2 > 0) && (distance2 < stopDist2)) {
-      //   leftMotor.setSpeed(0);  
-      //   rightMotor.setSpeed(0);
-      //   digitalWrite(test, HIGH); 
-      // }
-    // }
-
-    //  if ((left_pwm > 0) && (right_pwm < 0)) {   //check left
-      // Get left us reading
-      // int distance3 = sonar3.ping_cm();
-      // Serial.print("ULT:");
-      // Serial.println(distance3);
-
-      
-      // if ((distance3 > 0) && (distance3 < stopDist3)) {
-      //   leftMotor.setSpeed(0);  
-      //   rightMotor.setSpeed(0);
-      //   digitalWrite(test, HIGH); 
-      
-      // }
-    // }
-
-
-
-
-
-    // Serial.print("Left: "); Serial.println(left_pwm);
-    // Serial.print("  Right: "); Serial.println(right_pwm);
-
 
     // clear buffers
     // Serial.flush();
